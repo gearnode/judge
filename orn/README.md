@@ -1,4 +1,4 @@
-# Object Resource Names (ORNs) and Domain Namespaces (DNs)
+# Object Resource Names (ORNs)
 
 Object Resource Names (ORNs) uniquely identify Object resources.
 
