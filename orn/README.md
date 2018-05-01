@@ -30,3 +30,31 @@ The content of this part of the ORN varies by service. It often includes an indi
 ## **Paths in ORNs**
 
 TODO: Define the ORN Path Spec properly.
+
+
+## Package
+
+The orn package provides provides some helpful methods to deal with the ORN format.
+
+- Struct Go to represent the string
+- Unmarshal/Marshal functions
+
+See it in action:
+
+```go
+package yours
+
+import (
+  "github.com/gearnode/judge/orn"
+  "fmt"
+)
+
+func YourFunction() {
+  data := "orn:"foo-company:eatService::food:tomato"
+  orn := orn.ORN{}
+  if err := orn.Unmarshal(data, &orn); err != nil {
+    fmt.Println("Error:", err)
+  }
+  fmt.Println(orn.Marshal(orn))
+}
+```
