@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package api;
+
+message AuthorizeRequest {
+  string orn = 1;
+  string action = 2;
+}
+
+message AuthorizeResponse {
+  bool authorize = 1;
+}
+
+service Judge {
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {}
+}
