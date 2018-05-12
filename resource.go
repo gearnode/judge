@@ -2,7 +2,8 @@ package judge
 
 import (
 	"github.com/gearnode/judge/orn"
-	"strings"
+	"regexp"
+	"fmt"
 )
 
 const (
@@ -36,31 +37,12 @@ func (resource *Resource) haveMatchResourceType(entity *orn.ORN) bool {
 }
 
 func (resource *Resource) haveMatchResourcePath(entity *orn.ORN) bool {
-	resourcePathParts := strings.Split(resource.Resource, orn.SubSep)
-	entityPathParts := strings.Split(entity.Resource, orn.SubSep)
-	x := len(resourcePathParts)
-	y := len(entityPathParts)
+	// Replace * by .*
+	var re = regexp.MustCompile(fmt.Sprintf(`(%[1]s|^)(\*)(%[1]s|$)`, orn.SubSep))
+	s := string(re.ReplaceAllString(resource.Resource, "$1.*$3"))
+	// Place start and end delimiters (^$)
+	s = fmt.Sprintf("^%s$", s)
 
-	if y < x {
-		return false
-	}
-
-	for i := 0; i < x && i < y; i++ {
-		if resourcePathParts[i] != entityPathParts[i] && resourcePathParts[i] != allowAll {
-			return false
-		}
-
-		resourceLastPart := i+1 >= x
-		entityLastPart := i+1 >= y
-
-		if resourceLastPart && x < y && resourcePathParts[i] == allowAll {
-			return true
-		}
-
-		if resourceLastPart && entityLastPart &&
-			(resourcePathParts[i] == entityPathParts[i] || resourcePathParts[i] == allowAll) {
-			return true
-		}
-	}
-	return false
+	matched, _ := regexp.MatchString(s, entity.Resource)
+	return matched
 }

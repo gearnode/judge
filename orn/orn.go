@@ -36,7 +36,7 @@ const (
 	// PartSize is the number of piece of an ORN.
 	PartSize = 5
 
-	// SubSep is the sperator used to seprate the Resource and ResourceType.
+	// SubSep is the separator used to separate the Resource and ResourceType.
 	SubSep = "/"
 
 	// SubSize is the number of piece of an ResourceType/Resource
