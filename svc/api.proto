@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package api;
+package svc;
 
 message AuthorizeRequest {
   string orn = 1;
