@@ -392,3 +392,27 @@ func TestMatch(t *testing.T) {
 		})
 	})
 }
+
+// Benchmarks
+
+func BenchmarkMatch(b *testing.B) {
+	var (
+		entity = orn.ORN{
+			Partition:    "food-company",
+			Service:      "eatService",
+			ResourceType: "food",
+			Resource:     "milk/foo",
+		}
+
+		resource = judge.Resource{
+			Partition:    "food-company",
+			Service:      "eatService",
+			ResourceType: "food",
+			Resource:     "milk/*",
+		}
+	)
+
+	for i := 0; i < b.N; i++ {
+		resource.Match(&entity)
+	}
+}
