@@ -89,3 +89,17 @@ func TestAuthorize(t *testing.T) {
 		assert.False(t, ok)
 	})
 }
+
+func BenchmarkAuthorize(b *testing.B) {
+	entity := orn.ORN{
+		Partition:    "foo-company",
+		Service:      "eatService",
+		ResourceType: "food",
+		Resource:     "tomato",
+	}
+
+	for i := 0; i < b.N; i++ {
+		judge.Authorize(policies, entity, "eatService:Take")
+		judge.Authorize(policies, entity, "eatService:BadAction")
+	}
+}
