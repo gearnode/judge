@@ -49,7 +49,8 @@ var (
 //
 // TODO: Add context
 // TODO: Add interpolcation support on policy
-func Authorize(policies []Policy, entityORN orn.ORN, action string) (bool, error) {
+func Authorize(pstore PolicyStore, entityORN orn.ORN, action string) (bool, error) {
+	policies := pstore.GetAll()
 	state := notMatchStatement
 	for _, policy := range policies {
 		for _, statement := range policy.Document.Statement {

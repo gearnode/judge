@@ -36,9 +36,40 @@ func (s *Server) Start() error {
 	return grpcServer.Serve(lis)
 }
 
+type PolicyStore interface {
+	GetAll() []Policy
+	Put(Policy) bool
+	Flush() bool
+}
+
+type MemoryStore struct {
+	policies []Policy
+	PolicyStore
+}
+
+func (s *MemoryStore) GetAll() []Policy {
+	return s.policies
+}
+
+func (s *MemoryStore) Put(policy Policy) bool {
+	s.policies = append(s.policies, policy)
+	return true
+}
+
+func (s *MemoryStore) Flush() bool {
+	s.policies = []Policy{}
+	return true
+}
+
+var (
+	store = MemoryStore{}
+)
+
 // Authorize todo
 func (s *Server) Authorize(ctx context.Context, in *svc.AuthorizeRequest) (*svc.AuthorizeResponse, error) {
 	log.Printf("Receive Authorize Request for execute %s on %s", in.Action, in.Orn)
-	ok, err := Authorize([]Policy{}, orn.ORN{}, "")
+	o := orn.ORN{}
+	orn.Unmarshal(in.Orn, &o)
+	ok, err := Authorize(&store, o, in.Action)
 	return &svc.AuthorizeResponse{Authorize: ok}, err
 }

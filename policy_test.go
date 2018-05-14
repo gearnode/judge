@@ -61,9 +61,22 @@ var (
 			},
 		},
 	}
+
+	store = &judge.MemoryStore{}
 )
 
+func prepare() {
+	for _, v := range policies {
+		store.Put(v)
+	}
+}
+
+func clean() {
+	store.Flush()
+}
+
 func TestAuthorize(t *testing.T) {
+	prepare()
 	t.Run("it's work", func(t *testing.T) {
 		entity := orn.ORN{
 			Partition:    "foo-company",
@@ -72,25 +85,27 @@ func TestAuthorize(t *testing.T) {
 			Resource:     "tomato",
 		}
 
-		ok, err := judge.Authorize(policies, entity, "eatService:Eat")
+		ok, err := judge.Authorize(store, entity, "eatService:Eat")
 		assert.Nil(t, err)
 		assert.True(t, ok)
 
-		ok, err = judge.Authorize(policies, entity, "eatService:BadAction")
+		ok, err = judge.Authorize(store, entity, "eatService:BadAction")
 		assert.NotNil(t, err)
 		assert.False(t, ok)
 
-		ok, err = judge.Authorize(policies, entity, "eatService:Take")
+		ok, err = judge.Authorize(store, entity, "eatService:Take")
 		assert.Nil(t, err)
 		assert.True(t, ok)
 
-		ok, err = judge.Authorize(policies, entity, "eatService:Describe")
+		ok, err = judge.Authorize(store, entity, "eatService:Describe")
 		assert.NotNil(t, err)
 		assert.False(t, ok)
 	})
+	clean()
 }
 
 func BenchmarkAuthorize(b *testing.B) {
+	prepare()
 	entity := orn.ORN{
 		Partition:    "foo-company",
 		Service:      "eatService",
@@ -99,7 +114,8 @@ func BenchmarkAuthorize(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		judge.Authorize(policies, entity, "eatService:Take")
-		judge.Authorize(policies, entity, "eatService:BadAction")
+		judge.Authorize(store, entity, "eatService:Take")
+		judge.Authorize(store, entity, "eatService:BadAction")
 	}
+	clean()
 }
