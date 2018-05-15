@@ -67,9 +67,15 @@ var (
 
 // Authorize todo
 func (s *Server) Authorize(ctx context.Context, in *svc.AuthorizeRequest) (*svc.AuthorizeResponse, error) {
-	log.Printf("Receive Authorize Request for execute %s on %s", in.Action, in.Orn)
+	log.Printf("Receive Authorize Request for execute %s on %s", in.GetAction(), in.GetOrn())
 	o := orn.ORN{}
-	orn.Unmarshal(in.Orn, &o)
-	ok, err := Authorize(&store, o, in.Action)
+	orn.Unmarshal(in.GetOrn(), &o)
+	ok, err := Authorize(&store, o, in.GetAction())
 	return &svc.AuthorizeResponse{Authorize: ok}, err
+}
+
+func (s *Server) CreatePolicy(ctx context.Context, in *svc.CreatePolicyRequest) (*svc.CreatePolicyResponse, error) {
+	log.Printf("Receive CreatePolicy Request to execute")
+	ok, err := CreatePolicy(&store, in.GetName(), in.GetDescription(), in.GetDocument())
+	return &svc.CreatePolicyResponse{Ok: ok, Error: err.Error()}, err
 }

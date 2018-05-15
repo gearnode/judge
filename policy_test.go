@@ -119,3 +119,125 @@ func BenchmarkAuthorize(b *testing.B) {
 	}
 	clean()
 }
+
+func TestCreatePolicy(t *testing.T) {
+	assert.Equal(t, 0, len(store.GetAll()))
+	ok, err := judge.CreatePolicy(
+		store,
+		"policy demo",
+		"some description",
+		`
+		{
+			"version": "2018-02-15",
+			"statement": [
+				{
+					"effect": "Allow",
+					"action": ["eatService:Take"],
+					"resource": ["orn:judge-org:policy-service::foo/bar"]
+				}
+			]
+		}
+		`,
+	)
+
+	assert.True(t, ok)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(store.GetAll()))
+	clean()
+
+	assert.Equal(t, 0, len(store.GetAll()))
+	ok, err = judge.CreatePolicy(
+		store,
+		"policy demo",
+		"some description",
+		`
+		{
+			"version": "2018-02-15",
+			"statement": [
+				{
+					"effect": "",
+					"action": ["eatService:Take"],
+					"resource": ["orn:judge-org:policy-service::foo/bar"]
+				}
+			]
+		}
+		`,
+	)
+
+	assert.False(t, ok)
+	assert.NotNil(t, err)
+	assert.Equal(t, 0, len(store.GetAll()))
+	clean()
+
+	assert.Equal(t, 0, len(store.GetAll()))
+	ok, err = judge.CreatePolicy(
+		store,
+		"policy demo",
+		"some description",
+		`
+		{
+			"version": "2018-02-15",
+			"statement": [
+				{
+					"effect": "Other",
+					"action": ["eatService:Take"],
+					"resource": ["orn:judge-org:policy-service::foo/bar"]
+				}
+			]
+		}
+		`,
+	)
+
+	assert.False(t, ok)
+	assert.NotNil(t, err)
+	assert.Equal(t, 0, len(store.GetAll()))
+	clean()
+
+	assert.Equal(t, 0, len(store.GetAll()))
+	ok, err = judge.CreatePolicy(
+		store,
+		"policy demo",
+		"some description",
+		`
+		{
+			"version": "2018-02-15",
+			"statement": [
+				{
+					"effect": "Deny",
+					"action": ["eatService:Take"],
+					"resource": []
+				}
+			]
+		}
+		`,
+	)
+
+	assert.False(t, ok)
+	assert.NotNil(t, err)
+	assert.Equal(t, 0, len(store.GetAll()))
+	clean()
+
+	assert.Equal(t, 0, len(store.GetAll()))
+	ok, err = judge.CreatePolicy(
+		store,
+		"policy demo",
+		"some description",
+		`
+		{
+			"version": "2018-02-15",
+			"statement": [
+				{
+					"effect": "Deny",
+					"action": [],
+					"resource": ["orn:judge-org:policy-service::foo/bar"]
+				}
+			]
+		}
+		`,
+	)
+
+	assert.False(t, ok)
+	assert.NotNil(t, err)
+	assert.Equal(t, 0, len(store.GetAll()))
+	clean()
+}
