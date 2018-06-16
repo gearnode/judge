@@ -3,7 +3,7 @@ package orn_test
 import (
 	"testing"
 
-	"github.com/gearnode/judge/orn"
+	"github.com/gearnode/judge/pkg/orn"
 	"github.com/stretchr/testify/assert"
 )
 

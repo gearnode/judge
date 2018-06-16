@@ -1,7 +1,7 @@
 package judge
 
 import (
-	"github.com/gearnode/judge/orn"
+	"github.com/gearnode/judge/pkg/orn"
 	"strings"
 )
 

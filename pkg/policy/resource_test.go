@@ -1,8 +1,8 @@
 package judge_test
 
 import (
-	"github.com/gearnode/judge"
-	"github.com/gearnode/judge/orn"
+	"github.com/gearnode/judge/pkg/orn"
+	"github.com/gearnode/judge/pkg/policy"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

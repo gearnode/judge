@@ -4,11 +4,36 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gearnode/judge/orn"
+	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gosimple/slug"
 	"github.com/satori/go.uuid"
 	"strings"
 )
+
+type PolicyStore interface {
+	GetAll() []Policy
+	Put(Policy) bool
+	Flush() bool
+}
+
+type MemoryStore struct {
+	policies []Policy
+	PolicyStore
+}
+
+func (s *MemoryStore) GetAll() []Policy {
+	return s.policies
+}
+
+func (s *MemoryStore) Put(policy Policy) bool {
+	s.policies = append(s.policies, policy)
+	return true
+}
+
+func (s *MemoryStore) Flush() bool {
+	s.policies = []Policy{}
+	return true
+}
 
 // Policy is an entity in Judge that, when attached to an identity, defines
 // their permissions. Judge evaluates these policies when a principal, such as
