@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package memorystore contains an memory implementation of
+// Package memorystore contains an in memory implementation of
 // the Judge storage interface.
 package memorystore // import "github.com/gearnode/judge/pkg/storage/memory"
 
@@ -26,25 +26,26 @@ import (
 )
 
 // MemoryTable foo
-type MemoryTable map[string]MemoryRow
+type memoryTable map[string]memoryRow
 
 // MemoryRow foo
-type MemoryRow map[string]interface{}
+type memoryRow map[string]interface{}
 
 // MemoryStore is a simple in-memory storage using the DB interface.
 type MemoryStore struct {
-	data MemoryTable
+	data memoryTable
 	mux  sync.RWMutex
+
 	storage.DB
 }
 
 // NewMemoryStore create a new memory store
 func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{data: MemoryTable{"settings": MemoryRow{}}}
+	return &MemoryStore{data: memoryTable{"settings": memoryRow{}}}
 }
 
 // Data return the raw internal memory state.
-func (store *MemoryStore) Data() MemoryTable {
+func (store *MemoryStore) Data() memoryTable {
 	store.mux.RLock()
 	data := store.data
 	store.mux.RUnlock()
@@ -59,7 +60,7 @@ func (store *MemoryStore) DescribeAll(table string) ([]interface{}, error) {
 	data := make([]interface{}, len(partition))
 
 	if partition == nil {
-		partition = MemoryRow{}
+		partition = memoryRow{}
 	}
 
 	i := 0
@@ -78,7 +79,7 @@ func (store *MemoryStore) Describe(table string, id string) (interface{}, error)
 	store.mux.RUnlock()
 
 	if partition == nil {
-		partition = MemoryRow{}
+		partition = memoryRow{}
 	}
 
 	elem := partition[id]
@@ -96,7 +97,7 @@ func (store *MemoryStore) Put(table string, id string, object interface{}) error
 	partition := store.data[table]
 
 	if partition == nil {
-		partition = MemoryRow{}
+		partition = memoryRow{}
 	}
 
 	partition[id] = object
