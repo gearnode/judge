@@ -3,6 +3,7 @@ package judge_test
 import (
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -62,17 +63,17 @@ var (
 		},
 	}
 
-	store = &judge.MemoryStore{}
+	store = memorystore.NewMemoryStore()
 )
 
 func prepare() {
 	for _, v := range policies {
-		store.Put(v)
+		store.Put("policies", v.ID, v)
 	}
 }
 
 func clean() {
-	store.Flush()
+	store = memorystore.NewMemoryStore()
 }
 
 func TestAuthorize(t *testing.T) {
@@ -120,8 +121,15 @@ func BenchmarkAuthorize(b *testing.B) {
 	clean()
 }
 
+func emptyDatabase(t *testing.T) {
+	l, err := store.DescribeAll("policies")
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(l))
+}
+
 func TestCreatePolicy(t *testing.T) {
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
+
 	ok, err := judge.CreatePolicy(
 		store,
 		"policy demo",
@@ -142,10 +150,12 @@ func TestCreatePolicy(t *testing.T) {
 
 	assert.True(t, ok)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(store.GetAll()))
+	l, err := store.DescribeAll("policies")
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(l))
 	clean()
 
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	ok, err = judge.CreatePolicy(
 		store,
 		"policy demo",
@@ -166,10 +176,10 @@ func TestCreatePolicy(t *testing.T) {
 
 	assert.False(t, ok)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	clean()
 
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	ok, err = judge.CreatePolicy(
 		store,
 		"policy demo",
@@ -190,10 +200,10 @@ func TestCreatePolicy(t *testing.T) {
 
 	assert.False(t, ok)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	clean()
 
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	ok, err = judge.CreatePolicy(
 		store,
 		"policy demo",
@@ -214,10 +224,10 @@ func TestCreatePolicy(t *testing.T) {
 
 	assert.False(t, ok)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	clean()
 
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	ok, err = judge.CreatePolicy(
 		store,
 		"policy demo",
@@ -238,6 +248,6 @@ func TestCreatePolicy(t *testing.T) {
 
 	assert.False(t, ok)
 	assert.NotNil(t, err)
-	assert.Equal(t, 0, len(store.GetAll()))
+	emptyDatabase(t)
 	clean()
 }

@@ -5,35 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
+	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gosimple/slug"
 	"github.com/satori/go.uuid"
 	"strings"
 )
-
-type PolicyStore interface {
-	GetAll() []Policy
-	Put(Policy) bool
-	Flush() bool
-}
-
-type MemoryStore struct {
-	policies []Policy
-	PolicyStore
-}
-
-func (s *MemoryStore) GetAll() []Policy {
-	return s.policies
-}
-
-func (s *MemoryStore) Put(policy Policy) bool {
-	s.policies = append(s.policies, policy)
-	return true
-}
-
-func (s *MemoryStore) Flush() bool {
-	s.policies = []Policy{}
-	return true
-}
 
 // Policy is an entity in Judge that, when attached to an identity, defines
 // their permissions. Judge evaluates these policies when a principal, such as
@@ -81,10 +57,16 @@ var (
 //
 // TODO: Add context
 // TODO: Add interpolcation support on policy
-func Authorize(pstore PolicyStore, entityORN orn.ORN, action string) (bool, error) {
-	policies := pstore.GetAll()
+func Authorize(pstore storage.DB, entityORN orn.ORN, action string) (bool, error) {
+	policies, err := pstore.DescribeAll("policies")
+	if err != nil {
+		return false, err
+	}
+
 	state := notMatchStatement
-	for _, policy := range policies {
+	for _, obj := range policies {
+		policy := obj.(Policy)
+
 		for _, statement := range policy.Document.Statement {
 			effect := evalStatement(&statement, &entityORN, &action)
 			if effect == denyAction {
@@ -120,7 +102,8 @@ func matchAction(actions []string, action string) bool {
 	return false
 }
 
-func CreatePolicy(pstore PolicyStore, name string, description string, doc string) (bool, error) {
+// CreatePolicy foo
+func CreatePolicy(pstore storage.DB, name string, description string, doc string) (bool, error) {
 	o := orn.ORN{
 		Partition:    "judge-org",
 		Service:      "judge-server",
@@ -185,7 +168,7 @@ func CreatePolicy(pstore PolicyStore, name string, description string, doc strin
 		},
 	}
 
-	pstore.Put(policy)
+	pstore.Put("policies", policy.ID, policy)
 	return true, nil
 }
 
@@ -211,7 +194,7 @@ var (
 	ErrMalformed = errors.New("malformed ORN")
 )
 
-// Unmarshal accepts an ORN string and attempts to split it into constiuent parts.
+// UnmarshalResource accepts an ORN string and attempts to split it into constiuent parts.
 func UnmarshalResource(data string, orn *Resource) error {
 	parts := strings.Split(data, PartSep)
 	if len(parts) != PartSize {
