@@ -22,26 +22,3 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
 gazelle_dependencies()
 
-go_repository(
-    name = "com_github_golang_glog",
-    commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
-    importpath = "github.com/golang/glog",
-)
-
-go_repository(
-    name = "com_github_spf13_cobra",
-    commit = "7b1b6e8dc027253d45fc029bc269d1c019f83a34",
-    importpath = "github.com/spf13/cobra",
-)
-
-go_repository(
-    name = "com_github_spf13_pflag",
-    commit = "f1d95a35e132e8a1868023a08932b14f0b8b8fcb",
-    importpath = "github.com/spf13/pflag",
-)
-
-go_repository(
-    name = "com_github_stretchr_testify",
-    importpath = "github.com/stretchr/testify",
-    tag = "v1.2.2",
-)
