@@ -20,6 +20,7 @@ package memorystore // import "github.com/gearnode/judge/pkg/storage/memory"
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/gearnode/judge/pkg/storage"
 )
@@ -33,7 +34,7 @@ type MemoryRow map[string]interface{}
 // MemoryStore is a simple in-memory storage using the DB interface.
 type MemoryStore struct {
 	data MemoryTable
-
+	mux  sync.RWMutex
 	storage.DB
 }
 
@@ -44,12 +45,17 @@ func NewMemoryStore() *MemoryStore {
 
 // Data return the raw internal memory state.
 func (store *MemoryStore) Data() MemoryTable {
-	return store.data
+	store.mux.RLock()
+	data := store.data
+	store.mux.RUnlock()
+	return data
 }
 
 // DescribeAll return all element in the given table
 func (store *MemoryStore) DescribeAll(table string) ([]interface{}, error) {
+	store.mux.RLock()
 	partition := store.data[table]
+	store.mux.RUnlock()
 	data := make([]interface{}, len(partition))
 
 	if partition == nil {
@@ -67,7 +73,9 @@ func (store *MemoryStore) DescribeAll(table string) ([]interface{}, error) {
 
 // Describe return the elememt with the given ID in the given table
 func (store *MemoryStore) Describe(table string, id string) (interface{}, error) {
+	store.mux.RLock()
 	partition := store.data[table]
+	store.mux.RUnlock()
 
 	if partition == nil {
 		partition = MemoryRow{}
@@ -84,6 +92,7 @@ func (store *MemoryStore) Describe(table string, id string) (interface{}, error)
 
 // Put upsert record in the given table
 func (store *MemoryStore) Put(table string, id string, object interface{}) error {
+	store.mux.Lock()
 	partition := store.data[table]
 
 	if partition == nil {
@@ -91,7 +100,9 @@ func (store *MemoryStore) Put(table string, id string, object interface{}) error
 	}
 
 	partition[id] = object
+
 	store.data[table] = partition
+	store.mux.Unlock()
 	return nil
 }
 
