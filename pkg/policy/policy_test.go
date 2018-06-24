@@ -10,7 +10,7 @@ import (
 
 var (
 	policies = []judge.Policy{
-		judge.Policy{
+		{
 			ID: "someid",
 			ORN: orn.ORN{
 				Partition:    "foo-company",
@@ -25,18 +25,18 @@ var (
 			Document: judge.Document{
 				Version: "2012-10-17",
 				Statement: []judge.Statement{
-					judge.Statement{
+					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
 						Resource: []judge.Resource{
-							judge.Resource{
+							{
 								Partition:    "foo-company",
 								Service:      "eatService",
 								AccountID:    "",
 								ResourceType: "food",
 								Resource:     "*",
 							},
-							judge.Resource{
+							{
 								Partition:    "foo-company",
 								Service:      "eatService",
 								AccountID:    "",
@@ -45,11 +45,11 @@ var (
 							},
 						},
 					},
-					judge.Statement{
+					{
 						Effect: "Deny",
 						Action: []string{"eatService:Describe"},
 						Resource: []judge.Resource{
-							judge.Resource{
+							{
 								Partition:    "foo-company",
 								Service:      "eatService",
 								AccountID:    "",
