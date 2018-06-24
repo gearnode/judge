@@ -1,6 +1,15 @@
-.PHONY: proto
-proto:
-	protoc -I svc/ \
-  -I $GOPATH/src \
-  --go_out=plugins=grpc:svc \
-  svc/api.proto
+.PHONY: all
+all:
+	bazel build //...
+
+.PHONY: test
+test:
+	bazel test //...
+
+.PHONY: gofmt
+gofmt:
+	gofmt -w -s pkg/ cmd/
+
+.PHONY: gazelle
+gazelle:
+	bazel run //:gazelle
