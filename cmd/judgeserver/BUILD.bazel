@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["judgectl.go"],
+    srcs = ["judgeserver.go"],
     importpath = "github.com/gearnode/judge/cmd/judgeserver",
     visibility = ["//visibility:private"],
 )
