@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "languages_substitution.go",
+        "slug.go",
+    ],
+    importmap = "vendor/github.com/gosimple/slug",
+    importpath = "github.com/gosimple/slug",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/rainycape/unidecode:go_default_library"],
+)

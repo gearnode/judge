@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["orn.go"],
+    importpath = "github.com/gearnode/judge/pkg/orn",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["orn_test.go"],
+    embed = [":go_default_library"],
+    importpath = "github.com/gearnode/judge/pkg/orn_test",
+    deps = [
+    	"//pkg/orn:go_default_library",
+    	"//pkg/storage/memory:go_default_library",
+    	"//vendor/github.com/stretchr/testify/assert:go_default_library",
+    ],
+)
