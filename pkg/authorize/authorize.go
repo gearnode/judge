@@ -1,4 +1,21 @@
-package authorize
+/*
+Copyright 2018 The Judge Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package authorize implement the policy evalution.
+package authorize // import "github.com/gearnode/judge/pkg/authorize"
 
 import (
 	"errors"
@@ -9,62 +26,69 @@ import (
 )
 
 const (
-	allowAction       = "Allow"
-	denyAction        = "Deny"
-	notMatchStatement = ""
+	allowAction = "Allow"
+	denyAction  = "Deny"
+	notMatch    = ""
 )
 
 var (
-	// ErrAccessDenied was return when the user does not have the sufficient permissions.
+	// ErrAccessDenied was return when the user does not have the sufficient
+	// permissions.
 	ErrAccessDenied = errors.New("the user does not have sufficient permissions")
 )
 
-// Authorize eval a list of policy
+// Authorize decides whether a given request should be allowed or denied.
 //
-// By default => access denied
-// Eval all the policies every time to ensure all denied policies are eval
+// The evaluation logic follows these rules:
+//   By default, all requests are denied.
+//   An explicit allow overrides this default.
+//   An explicit deny overrides any allows.
 //
-// TODO: Add context
-// TODO: Add interpolcation support on policy
-func Authorize(pstore storage.DB, entityORN orn.ORN, action string) (bool, error) {
-	policies, err := pstore.DescribeAll("policies")
+// The order in which the policies are evaluated has no effect on the outcome
+// of the evaluation. All policies are evaluated, and the result is always
+// that the request is either allowed or denied.
+func Authorize(s storage.DB, who orn.ORN, what string, something orn.ORN, context map[string]string) (bool, error) {
+
+	defaultEffect := denyAction
+
+	pols, err := s.DescribeAll("policies")
 	if err != nil {
 		return false, err
 	}
 
-	state := notMatchStatement
-	for _, obj := range policies {
-		p := obj.(judge.Policy)
+	for _, data := range pols {
+		pol := data.(judge.Policy)
+		for _, stmt := range pol.Document.Statement {
+			effect := evalStme(&stmt, &something, &what)
 
-		for _, statement := range p.Document.Statement {
-			effect := evalStatement(&statement, &entityORN, &action)
-			if effect == denyAction {
+			if effect == denyAction { // Explicit deny
 				return false, ErrAccessDenied
-			} else if effect == allowAction && state == notMatchStatement {
-				state = allowAction
+			} else if effect == allowAction { // Explicit allow
+				defaultEffect = allowAction
 			}
 		}
 	}
-	if state == allowAction {
+
+	if defaultEffect == allowAction {
 		return true, nil
 	}
 	return false, ErrAccessDenied
 }
 
-func evalStatement(statement *judge.Statement, entityORN *orn.ORN, action *string) string {
-	if matchAction(statement.Action, *action) {
-		for _, resource := range statement.Resource {
-			if resource.Match(entityORN) {
-				return statement.Effect
+func evalStme(stmt *judge.Statement, something *orn.ORN, what *string) string {
+	if matchAction(stmt.Action, *what) {
+		for _, resource := range stmt.Resource {
+			if resource.Match(something) {
+				return stmt.Effect
 			}
 		}
 	}
-	return notMatchStatement
+	return notMatch
 }
 
-func matchAction(actions []string, action string) bool {
-	for _, v := range actions {
-		if v == action {
+func matchAction(actions []string, what string) bool {
+	for _, action := range actions {
+		if action == what {
 			return true
 		}
 	}

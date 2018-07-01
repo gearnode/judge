@@ -3,10 +3,10 @@ package authorize_test
 import (
 	"testing"
 
+	"github.com/gearnode/judge/pkg/authorize"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
 	"github.com/gearnode/judge/pkg/storage/memory"
-	"github.com/gearnode/judge/pkg/authorize"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -82,26 +82,32 @@ func clean() {
 func TestAuthorize(t *testing.T) {
 	prepare()
 	t.Run("it's work", func(t *testing.T) {
-		entity := orn.ORN{
+		who := orn.ORN{}
+		what := "eatService:Eat"
+		something := orn.ORN{
 			Partition:    "foo-company",
 			Service:      "eatService",
 			ResourceType: "food",
 			Resource:     "tomato",
 		}
+		ctx := make(map[string]string, 1)
 
-		ok, err := authorize.Authorize(store, entity, "eatService:Eat")
+		ok, err := authorize.Authorize(store, who, what, something, ctx)
 		assert.Nil(t, err)
 		assert.True(t, ok)
 
-		ok, err = authorize.Authorize(store, entity, "eatService:BadAction")
+		what = "eatService:BadAction"
+		ok, err = authorize.Authorize(store, who, what, something, ctx)
 		assert.NotNil(t, err)
 		assert.False(t, ok)
 
-		ok, err = authorize.Authorize(store, entity, "eatService:Take")
+		what = "eatService:Take"
+		ok, err = authorize.Authorize(store, who, what, something, ctx)
 		assert.Nil(t, err)
 		assert.True(t, ok)
 
-		ok, err = authorize.Authorize(store, entity, "eatService:Describe")
+		what = "eatService:Describe"
+		ok, err = authorize.Authorize(store, who, what, something, ctx)
 		assert.NotNil(t, err)
 		assert.False(t, ok)
 	})
@@ -110,16 +116,19 @@ func TestAuthorize(t *testing.T) {
 
 func BenchmarkAuthorize(b *testing.B) {
 	prepare()
-	entity := orn.ORN{
+
+	who := orn.ORN{}
+	something := orn.ORN{
 		Partition:    "foo-company",
 		Service:      "eatService",
 		ResourceType: "food",
 		Resource:     "tomato",
 	}
+	ctx := make(map[string]string, 1)
 
 	for i := 0; i < b.N; i++ {
-		authorize.Authorize(store, entity, "eatService:Take")
-		authorize.Authorize(store, entity, "eatService:BadAction")
+		authorize.Authorize(store, who, "eatService:Take", something, ctx)
+		authorize.Authorize(store, who, "eatService:BadAction", something, ctx)
 	}
 	clean()
 }
