@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	policies = []judge.Policy{
+	policies = []policy.Policy{
 		{
 			ID: "someid",
 			ORN: orn.ORN{
@@ -26,9 +26,9 @@ var (
 			Name:        "allow_eat_tomato",
 			Description: "allow user to eat tomato",
 			Type:        "",
-			Document: judge.Document{
+			Document: policy.Document{
 				Version: "2012-10-17",
-				Statement: []judge.Statement{
+				Statement: []policy.Statement{
 					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
