@@ -14,18 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge_test
+package judge
 
 import (
 	"github.com/gearnode/judge/pkg/orn"
-	"github.com/gearnode/judge/pkg/policy"
 	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 var (
-	policies = []judge.Policy{
+	policies = []Policy{
 		{
 			ID: "someid",
 			ORN: orn.ORN{
@@ -38,13 +37,13 @@ var (
 			Name:        "allow_eat_tomato",
 			Description: "allow user to eat tomato",
 			Type:        "",
-			Document: judge.Document{
+			Document: Document{
 				Version: "2012-10-17",
-				Statement: []judge.Statement{
+				Statement: []Statement{
 					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -64,7 +63,7 @@ var (
 					{
 						Effect: "Deny",
 						Action: []string{"eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -101,7 +100,7 @@ func emptyDatabase(t *testing.T) {
 func TestCreatePolicy(t *testing.T) {
 	emptyDatabase(t)
 
-	ok, err := judge.CreatePolicy(
+	ok, err := CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -127,7 +126,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -151,7 +150,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -175,7 +174,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -199,7 +198,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",

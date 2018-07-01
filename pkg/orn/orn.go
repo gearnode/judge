@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package orn represents ORN data structure in Go types.
-package orn
+package orn // import "github.com/gearnode/judge/pkg/orn"
 
 import (
 	"errors"
