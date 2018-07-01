@@ -60,7 +60,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
+  revision = "4cb1c02c05b0e749b0365f61ae859a8e0cfceed9"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -87,7 +87,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "80063a038e333bbe006c878e4c5ce4c74d055498"
+  revision = "ff3583edef7de132f219f0efc00e097cabcc0ec0"
 
 [[projects]]
   name = "google.golang.org/grpc"
