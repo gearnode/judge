@@ -19,12 +19,11 @@ package judge
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gosimple/slug"
 	"github.com/satori/go.uuid"
-	"strings"
 )
 
 // Policy is an entity in Judge that, when attached to an identity, defines
@@ -48,9 +47,9 @@ type Document struct {
 
 // Statement todo
 type Statement struct {
-	Effect   string     `json:"effect"`
-	Action   []string   `json:"action"`
-	Resource []Resource `json:"resource"`
+	Effect   string              `json:"effect"`
+	Action   []string            `json:"action"`
+	Resource []resource.Resource `json:"resource"`
 }
 
 var (
@@ -94,15 +93,15 @@ func CreatePolicy(pstore storage.DB, name string, description string, doc string
 		}
 
 		// NOTE: maybe merge resource in the ORN package
-		statement.Resource = []Resource{}
+		statement.Resource = []resource.Resource{}
 		// TODO: implement unmarshal func for resource type
 		for _, r := range z["resource"].([]interface{}) {
-			resource := Resource{}
-			err := UnmarshalResource(r.(string), &resource)
+			rsrc := resource.Resource{}
+			err := resource.Unmarshal(r.(string), &rsrc)
 			if err != nil {
 				return false, err
 			}
-			statement.Resource = append(statement.Resource, resource)
+			statement.Resource = append(statement.Resource, rsrc)
 		}
 
 		if len(statement.Resource) <= 0 {
@@ -126,81 +125,4 @@ func CreatePolicy(pstore storage.DB, name string, description string, doc string
 
 	pstore.Put("policies", policy.ID, policy)
 	return true, nil
-}
-
-const (
-	// FirstPart represent the first part of an unmarshal ORN.
-	FirstPart = "orn"
-
-	// PartSep is the value used to separate ORN parts when ORN is marshaled.
-	PartSep = ":"
-
-	// PartSize is the number of piece of an ORN.
-	PartSize = 5
-
-	// SubSep is the sperator used to seprate the Resource and ResourceType.
-	SubSep = "/"
-
-	// SubSize is the number of piece of an ResourceType/Resource
-	SubSize = 2 // sub parts size
-)
-
-var (
-	// ErrMalformed is returned when the ORN appears to be invalid.
-	ErrMalformed = errors.New("malformed ORN")
-)
-
-// UnmarshalResource accepts an ORN string and attempts to split it into constiuent parts.
-func UnmarshalResource(data string, orn *Resource) error {
-	parts := strings.Split(data, PartSep)
-	if len(parts) != PartSize {
-		return ErrMalformed
-	} else if parts[0] != FirstPart {
-		return ErrMalformed
-	}
-
-	sub := strings.SplitN(parts[4], SubSep, 2)
-	if len(sub) != SubSize {
-		return ErrMalformed
-	}
-
-	// Don't validate the last part because this part contain / to seperate
-	// resourcetype/resource
-	for i := 0; i < len(parts)-1; i++ {
-		if !containsOnlyPermitedChar(parts[i]) {
-			return ErrMalformed
-		}
-	}
-
-	if !containsOnlyPermitedChar(sub[0]) {
-		return ErrMalformed
-	}
-
-	orn.Partition = parts[1]
-	orn.Service = parts[2]
-	orn.AccountID = parts[3]
-	orn.ResourceType = sub[0]
-	orn.Resource = sub[1]
-	return nil
-}
-
-// Marshal accepts an ORN Struct and attempts to join it into constiuent parts.
-func Marshal(orn *Resource) string {
-	return fmt.Sprintf(
-		"orn:%s:%s:%s:%s/%s",
-		orn.Partition,
-		orn.Service,
-		orn.AccountID,
-		orn.ResourceType,
-		orn.Resource,
-	)
-}
-
-func containsOnlyPermitedChar(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if (s[i] < 'a' || s[i] > 'z') && s[i] != '-' && s[i] != '*' {
-			return false
-		}
-	}
-	return true
 }

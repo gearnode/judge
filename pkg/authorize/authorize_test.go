@@ -6,6 +6,7 @@ import (
 	"github.com/gearnode/judge/pkg/authorize"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage/memory"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ var (
 					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -51,7 +52,7 @@ var (
 					{
 						Effect: "Deny",
 						Action: []string{"eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",

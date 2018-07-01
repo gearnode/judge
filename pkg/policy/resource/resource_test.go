@@ -14,13 +14,67 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge
+package resource
 
 import (
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func TestMarshal(t *testing.T) {
+	rsrc := Resource{
+		Partition: "judge-org", Service: "judge-server",
+		ResourceType: "policy", Resource: "*",
+		AccountID: "",
+	}
+
+	assert.Equal(t, "orn:judge-org:judge-server::policy/*", Marshal(&rsrc))
+
+	rsrc = Resource{
+		Partition: "some-org", Service: "some-svc",
+		ResourceType: "food", Resource: "*",
+		AccountID: "gearnode",
+	}
+
+	assert.Equal(t, "orn:some-org:some-svc:gearnode:food/*", Marshal(&rsrc))
+}
+
+func TestUnmarshal(t *testing.T) {
+	t.Run("returns error when the number of parts are invalid", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "orn:foo:foo:foo"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "orn:foo:foo:foo:foo:foo:foo:foo:foo/ddd/d/d/d"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+
+	t.Run("returns error when the first part is not orn", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "bar:judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = ":judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "o rn:judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+
+	t.Run("returns error when sub ", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "orn:judge-org:judge-server:gearnode:policy"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "orn:some-org:some-server::foobar"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+}
 
 func TestMatch(t *testing.T) {
 	t.Run("describe Partition match", func(t *testing.T) {
