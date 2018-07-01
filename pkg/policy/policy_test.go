@@ -92,51 +92,6 @@ func clean() {
 	store = memorystore.NewMemoryStore()
 }
 
-func TestAuthorize(t *testing.T) {
-	prepare()
-	t.Run("it's work", func(t *testing.T) {
-		entity := orn.ORN{
-			Partition:    "foo-company",
-			Service:      "eatService",
-			ResourceType: "food",
-			Resource:     "tomato",
-		}
-
-		ok, err := judge.Authorize(store, entity, "eatService:Eat")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-
-		ok, err = judge.Authorize(store, entity, "eatService:BadAction")
-		assert.NotNil(t, err)
-		assert.False(t, ok)
-
-		ok, err = judge.Authorize(store, entity, "eatService:Take")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-
-		ok, err = judge.Authorize(store, entity, "eatService:Describe")
-		assert.NotNil(t, err)
-		assert.False(t, ok)
-	})
-	clean()
-}
-
-func BenchmarkAuthorize(b *testing.B) {
-	prepare()
-	entity := orn.ORN{
-		Partition:    "foo-company",
-		Service:      "eatService",
-		ResourceType: "food",
-		Resource:     "tomato",
-	}
-
-	for i := 0; i < b.N; i++ {
-		judge.Authorize(store, entity, "eatService:Take")
-		judge.Authorize(store, entity, "eatService:BadAction")
-	}
-	clean()
-}
-
 func emptyDatabase(t *testing.T) {
 	l, err := store.DescribeAll("policies")
 	assert.Nil(t, err)
