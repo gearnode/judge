@@ -10,7 +10,6 @@ go_library(
         "//pkg/policy/resource:go_default_library",
         "//pkg/storage:go_default_library",
         "//vendor/github.com/gosimple/slug:go_default_library",
-        "//vendor/github.com/satori/go.uuid:go_default_library",
     ],
 )
 

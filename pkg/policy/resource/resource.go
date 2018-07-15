@@ -35,7 +35,7 @@ const (
 
 var (
 	// ErrMalformed is returned when the ORN appears to be invalid.
-	ErrMalformed = errors.New("malformed ORN")
+	ErrMalformed = errors.New("malformed resource")
 )
 
 // Marshal accepts an ORN Struct and attempts to join it into constiuent parts.
@@ -50,7 +50,7 @@ func Marshal(rsrc *Resource) string {
 	)
 }
 
-// UnmarshalResource accepts an string and attempts convert this string in
+// Unmarshal accepts an string and attempts convert this string in
 // Resource Go struct.
 func Unmarshal(data string, orn *Resource) error {
 	parts := strings.Split(data, partSep)

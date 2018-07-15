@@ -27,7 +27,6 @@ import (
 var (
 	policies = []Policy{
 		{
-			ID: "someid",
 			ORN: orn.ORN{
 				Partition:    "foo-company",
 				Service:      "judge",
@@ -82,9 +81,22 @@ var (
 	store = memorystore.NewMemoryStore()
 )
 
+func TestNewPolicy(t *testing.T) {
+	pol := NewPolicy("some-name", "some description of the policy")
+	assert.Equal(t, "some-name", pol.Name)
+	assert.Equal(t, "some description of the policy", pol.Description)
+	assert.Equal(t, STANDALONE, pol.Type)
+	assert.Equal(t, VERSION, pol.Document.Version)
+	assert.Equal(t, "judge-org", pol.ORN.Partition)
+	assert.Equal(t, "judge-server", pol.ORN.Service)
+	assert.Equal(t, "", pol.ORN.AccountID)
+	assert.Equal(t, "policy", pol.ORN.ResourceType)
+	assert.Equal(t, "some-name", pol.ORN.Resource)
+}
+
 func prepare() {
-	for _, v := range policies {
-		store.Put("policies", v.ID, v)
+	for _, pol := range policies {
+		store.Put("policies", pol.Name, pol)
 	}
 }
 

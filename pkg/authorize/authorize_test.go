@@ -15,7 +15,6 @@ import (
 var (
 	policies = []policy.Policy{
 		{
-			ID: "someid",
 			ORN: orn.ORN{
 				Partition:    "foo-company",
 				Service:      "judge",
@@ -71,8 +70,8 @@ var (
 )
 
 func prepare() {
-	for _, v := range policies {
-		store.Put("policies", v.ID, v)
+	for _, pol := range policies {
+		store.Put("policies", pol.Name, pol)
 	}
 }
 
