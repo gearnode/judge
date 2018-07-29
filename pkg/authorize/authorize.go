@@ -57,7 +57,7 @@ func Authorize(s storage.DB, who orn.ORN, what string, something orn.ORN, contex
 	}
 
 	for _, data := range pols {
-		pol := data.(judge.Policy)
+		pol := data.(policy.Policy)
 		for _, stmt := range pol.Document.Statement {
 			effect := evalStme(&stmt, &something, &what)
 
@@ -75,7 +75,7 @@ func Authorize(s storage.DB, who orn.ORN, what string, something orn.ORN, contex
 	return false, ErrAccessDenied
 }
 
-func evalStme(stmt *judge.Statement, something *orn.ORN, what *string) string {
+func evalStme(stmt *policy.Statement, something *orn.ORN, what *string) string {
 	if matchAction(stmt.Action, *what) {
 		for _, resource := range stmt.Resource {
 			if resource.Match(something) {

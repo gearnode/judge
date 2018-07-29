@@ -14,17 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge
+package policy // import "github.com/gearnode/judge/pkg/policy"
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gosimple/slug"
-	"github.com/satori/go.uuid"
-	"strings"
 )
 
 // Policy is an entity in Judge that, when attached to an identity, defines
@@ -32,39 +31,143 @@ import (
 // a user, makes a request. Permissions in the policies determine whether the
 // request is allowed or denied.
 type Policy struct {
-	ID          string
-	ORN         orn.ORN
-	Name        string
-	Description string
-	Type        string
-	Document    Document
+	// ORN element specifies a global unique identifier for the policy.
+	ORN orn.ORN `json:"orn"`
+
+	// Name element specifies a user friendly name for the policy.
+	Name string `json:"name"`
+
+	// Description element specifies description/usage about the policy.
+	Description string `json:"description"`
+
+	// Type element specifies the type for the policy.
+	Type string `json:"type"`
+
+	// Document contains all statements for the policy.
+	Document Document `json:"document"`
 }
 
-// Document todo
+// Document contains statements and version of these statements.
 type Document struct {
-	Version   string      `json:"version"`
+	// Version is the Statement version.
+	Version string `json:"version"`
+
+	// Statement contains a list of Statement.
 	Statement []Statement `json:"statement"`
 }
 
-// Statement todo
+// The Statement element is the main element for a policy. It defines
+// permissions.
 type Statement struct {
-	Effect   string     `json:"effect"`
-	Action   []string   `json:"action"`
-	Resource []Resource `json:"resource"`
+	// The Effect element is required and specifies whether the statement
+	// results in an allow or an explicit deny. Valid values for Effect are
+	// Allow and Deny.
+	Effect string `json:"effect"`
+
+	// The Action element describes the specific action or actions that will
+	// be allowed or denied.
+	Action []string `json:"action"`
+
+	// The Resource element specifies the object or objects that the statement
+	// covers.
+	Resource []resource.Resource `json:"resource"`
 }
+
+const (
+	PARTITION  = "judge-org"
+	SERVICE    = "judge-server"
+	STANDALONE = "STANDALONE"
+	VERSION    = "v1alpha1"
+)
 
 var (
 	// ErrMalformedPolicy was return when the policy is malformed.
 	ErrMalformedPolicy = errors.New("malformed policy")
 )
 
+// NewPolicy create a new policy document.
+func NewPolicy(name string, description string) *Policy {
+	return &Policy{
+		ORN: orn.ORN{
+			Partition: PARTITION, Service: SERVICE,
+			ResourceType: "policy", Resource: slug.Make(name),
+		},
+		Name:        name,
+		Description: description,
+		Type:        STANDALONE,
+		Document: Document{
+			Version: VERSION,
+		},
+	}
+}
+
+func NewStatement(effect string, actions []string, resources []string) (*Statement, error) {
+	if effect != "Allow" && effect != "Deny" {
+		return &Statement{}, fmt.Errorf("The effect %s is not supported."+
+			" Supported effects are \"Allow\" or \"Deny\"", effect)
+	}
+
+	if len(resources) == 0 {
+		return &Statement{}, errors.New("The statement object require at least" +
+			" one resource.")
+	}
+
+	if len(actions) == 0 {
+		return &Statement{}, errors.New("The statement object require at least" +
+			" one action.")
+	}
+
+	for _, action := range actions {
+		if action == "" {
+			return &Statement{}, errors.New("The statement object does not support" +
+				" empty action.")
+		}
+	}
+
+	stmt := Statement{
+		Effect:   effect,
+		Action:   actions,
+		Resource: make([]resource.Resource, len(resources)),
+	}
+
+	for i, rsrc := range resources {
+		err := resource.Unmarshal(rsrc, &stmt.Resource[i])
+		if err != nil {
+			return &Statement{}, err
+		}
+	}
+
+	return &stmt, nil
+}
+
 // CreatePolicy foo
-func CreatePolicy(pstore storage.DB, name string, description string, doc string) (bool, error) {
-	o := orn.ORN{
-		Partition:    "judge-org",
-		Service:      "judge-server",
-		ResourceType: "policy",
-		Resource:     slug.Make(name), // NOTE: keep slug dependency ?
+func CreatePolicy(store storage.DB, name string, description string, doc string) (bool, error) {
+	pol := NewPolicy(name, description)
+
+	// TODO: use reflect for data casting
+
+	document := make(map[string]interface{})
+	err := json.Unmarshal([]byte(doc), &document)
+	if err != nil {
+		return false, err
+	}
+
+	stmts := document["statement"].([]interface{})
+	pol.Document.Statement = make([]Statement, len(stmts))
+
+	for i, raw := range stmts {
+		data := raw.(map[string]interface{})
+		stmt, err := NewStatement(
+			data["effect"].(string),
+			toStringArray(data["action"].([]interface{})),
+			toStringArray(data["resource"].([]interface{})),
+		)
+
+		if err != nil {
+			return false, err
+		}
+
+		pol.Document.Statement[i] = *stmt
 	}
 
 	data := make(map[string]interface{})
@@ -72,135 +175,16 @@ func CreatePolicy(pstore storage.DB, name string, description string, doc string
 		return false, ErrMalformedPolicy
 	}
 
-	statements := []Statement{}
-
-	// TODO: have more granular error message
-	x := data["statement"].([]interface{})
-	// ([]map[string]interface{})
-	for _, v := range x {
-		z := v.(map[string]interface{})
-		statement := Statement{}
-		statement.Effect = z["effect"].(string)
-		if statement.Effect != "Allow" && statement.Effect != "Deny" {
-			return false, ErrMalformedPolicy
-		}
-
-		for _, v := range z["action"].([]interface{}) {
-			statement.Action = append(statement.Action, v.(string))
-		}
-
-		if len(statement.Action) <= 0 {
-			return false, ErrMalformedPolicy
-		}
-
-		// NOTE: maybe merge resource in the ORN package
-		statement.Resource = []Resource{}
-		// TODO: implement unmarshal func for resource type
-		for _, r := range z["resource"].([]interface{}) {
-			resource := Resource{}
-			err := UnmarshalResource(r.(string), &resource)
-			if err != nil {
-				return false, err
-			}
-			statement.Resource = append(statement.Resource, resource)
-		}
-
-		if len(statement.Resource) <= 0 {
-			return false, ErrMalformedPolicy
-		}
-		statements = append(statements, statement)
-	}
-
-	// TODO: handle uuid generation error
-	policy := Policy{
-		ORN:         o,
-		ID:          uuid.Must(uuid.NewV4()).String(),
-		Name:        name,
-		Description: description,
-		Type:        "STANDALONE",
-		Document: Document{
-			Version:   data["version"].(string),
-			Statement: statements,
-		},
-	}
-
-	pstore.Put("policies", policy.ID, policy)
+	store.Put("policies", pol.Name, pol)
 	return true, nil
 }
 
-const (
-	// FirstPart represent the first part of an unmarshal ORN.
-	FirstPart = "orn"
+func toStringArray(data []interface{}) []string {
+	strs := make([]string, len(data))
 
-	// PartSep is the value used to separate ORN parts when ORN is marshaled.
-	PartSep = ":"
-
-	// PartSize is the number of piece of an ORN.
-	PartSize = 5
-
-	// SubSep is the sperator used to seprate the Resource and ResourceType.
-	SubSep = "/"
-
-	// SubSize is the number of piece of an ResourceType/Resource
-	SubSize = 2 // sub parts size
-)
-
-var (
-	// ErrMalformed is returned when the ORN appears to be invalid.
-	ErrMalformed = errors.New("malformed ORN")
-)
-
-// UnmarshalResource accepts an ORN string and attempts to split it into constiuent parts.
-func UnmarshalResource(data string, orn *Resource) error {
-	parts := strings.Split(data, PartSep)
-	if len(parts) != PartSize {
-		return ErrMalformed
-	} else if parts[0] != FirstPart {
-		return ErrMalformed
+	for i := range data {
+		strs[i] = data[i].(string)
 	}
 
-	sub := strings.SplitN(parts[4], SubSep, 2)
-	if len(sub) != SubSize {
-		return ErrMalformed
-	}
-
-	// Don't validate the last part because this part contain / to seperate
-	// resourcetype/resource
-	for i := 0; i < len(parts)-1; i++ {
-		if !containsOnlyPermitedChar(parts[i]) {
-			return ErrMalformed
-		}
-	}
-
-	if !containsOnlyPermitedChar(sub[0]) {
-		return ErrMalformed
-	}
-
-	orn.Partition = parts[1]
-	orn.Service = parts[2]
-	orn.AccountID = parts[3]
-	orn.ResourceType = sub[0]
-	orn.Resource = sub[1]
-	return nil
-}
-
-// Marshal accepts an ORN Struct and attempts to join it into constiuent parts.
-func Marshal(orn *Resource) string {
-	return fmt.Sprintf(
-		"orn:%s:%s:%s:%s/%s",
-		orn.Partition,
-		orn.Service,
-		orn.AccountID,
-		orn.ResourceType,
-		orn.Resource,
-	)
-}
-
-func containsOnlyPermitedChar(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if (s[i] < 'a' || s[i] > 'z') && s[i] != '-' && s[i] != '*' {
-			return false
-		}
-	}
-	return true
+	return strs
 }

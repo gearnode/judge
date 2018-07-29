@@ -6,15 +6,15 @@ import (
 	"github.com/gearnode/judge/pkg/authorize"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage/memory"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	policies = []judge.Policy{
+	policies = []policy.Policy{
 		{
-			ID: "someid",
 			ORN: orn.ORN{
 				Partition:    "foo-company",
 				Service:      "judge",
@@ -25,13 +25,13 @@ var (
 			Name:        "allow_eat_tomato",
 			Description: "allow user to eat tomato",
 			Type:        "",
-			Document: judge.Document{
+			Document: policy.Document{
 				Version: "2012-10-17",
-				Statement: []judge.Statement{
+				Statement: []policy.Statement{
 					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -51,7 +51,7 @@ var (
 					{
 						Effect: "Deny",
 						Action: []string{"eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -70,8 +70,8 @@ var (
 )
 
 func prepare() {
-	for _, v := range policies {
-		store.Put("policies", v.ID, v)
+	for _, pol := range policies {
+		store.Put("policies", pol.Name, pol)
 	}
 }
 

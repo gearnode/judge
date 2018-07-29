@@ -14,14 +14,67 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge_test
+package resource
 
 import (
 	"github.com/gearnode/judge/pkg/orn"
-	"github.com/gearnode/judge/pkg/policy"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func TestMarshal(t *testing.T) {
+	rsrc := Resource{
+		Partition: "judge-org", Service: "judge-server",
+		ResourceType: "policy", Resource: "*",
+		AccountID: "",
+	}
+
+	assert.Equal(t, "orn:judge-org:judge-server::policy/*", Marshal(&rsrc))
+
+	rsrc = Resource{
+		Partition: "some-org", Service: "some-svc",
+		ResourceType: "food", Resource: "*",
+		AccountID: "gearnode",
+	}
+
+	assert.Equal(t, "orn:some-org:some-svc:gearnode:food/*", Marshal(&rsrc))
+}
+
+func TestUnmarshal(t *testing.T) {
+	t.Run("returns error when the number of parts are invalid", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "orn:foo:foo:foo"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "orn:foo:foo:foo:foo:foo:foo:foo:foo/ddd/d/d/d"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+
+	t.Run("returns error when the first part is not orn", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "bar:judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = ":judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "o rn:judge-org:judge-server:gearnode:policy/*"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+
+	t.Run("returns error when sub ", func(t *testing.T) {
+		rsrc := Resource{}
+		str := "orn:judge-org:judge-server:gearnode:policy"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+
+		rsrc = Resource{}
+		str = "orn:some-org:some-server::foobar"
+		assert.NotNil(t, Unmarshal(str, &rsrc))
+	})
+}
 
 func TestMatch(t *testing.T) {
 	t.Run("describe Partition match", func(t *testing.T) {
@@ -35,7 +88,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "*",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -63,7 +116,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "hell-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -87,7 +140,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -115,7 +168,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "*",
 					ResourceType: "food",
@@ -141,7 +194,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "buyService",
 					ResourceType: "food",
@@ -164,7 +217,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -191,7 +244,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					AccountID:    "*",
@@ -220,7 +273,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "buyService",
 					AccountID:    "superman",
@@ -244,7 +297,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -271,7 +324,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "*",
@@ -301,7 +354,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "buyService",
 					AccountID:    "gearnode",
@@ -325,7 +378,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -352,7 +405,7 @@ func TestMatch(t *testing.T) {
 					Resource:     "milk/goat",
 				}
 
-				resource = judge.Resource{
+				resource = Resource{
 					Partition:    "food-company",
 					Service:      "eatService",
 					ResourceType: "food",
@@ -420,7 +473,7 @@ func BenchmarkMatch(b *testing.B) {
 			Resource:     "milk/foo",
 		}
 
-		resource = judge.Resource{
+		resource = Resource{
 			Partition:    "food-company",
 			Service:      "eatService",
 			ResourceType: "food",

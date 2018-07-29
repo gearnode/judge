@@ -14,20 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package orn_test
+package orn
 
 import (
 	"testing"
 
-	"github.com/gearnode/judge/pkg/orn"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshal(t *testing.T) {
 
 	t.Run("does Unmarshal the ORN successfully", func(t *testing.T) {
-		expected := orn.ORN{}
-		err := orn.Unmarshal("orn:partition:service:account:resourcetype/resource", &expected)
+		expected := ORN{}
+		err := Unmarshal("orn:partition:service:account:resourcetype/resource", &expected)
 
 		assert.Nil(t, err)
 
@@ -39,8 +38,8 @@ func TestUnmarshal(t *testing.T) {
 	})
 
 	t.Run("does Unmarshal the ORN successfully with multiple / in the resource", func(t *testing.T) {
-		expected := orn.ORN{}
-		err := orn.Unmarshal("orn:acme:judge:account:user/837/bar", &expected)
+		expected := ORN{}
+		err := Unmarshal("orn:acme:judge:account:user/837/bar", &expected)
 
 		assert.Nil(t, err)
 
@@ -52,8 +51,8 @@ func TestUnmarshal(t *testing.T) {
 	})
 
 	t.Run("does Unmarshal the ORN successfully without account id", func(t *testing.T) {
-		expected := orn.ORN{}
-		err := orn.Unmarshal("orn:acme:judge::user/837/bar", &expected)
+		expected := ORN{}
+		err := Unmarshal("orn:acme:judge::user/837/bar", &expected)
 
 		assert.Nil(t, err)
 
@@ -66,8 +65,8 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestMarshal(t *testing.T) {
-	o := orn.ORN{Partition: "foo", Service: "bar", AccountID: "baz", ResourceType: "biz", Resource: "fiz"}
-	expected := orn.Marshal(&o)
+	o := ORN{Partition: "foo", Service: "bar", AccountID: "baz", ResourceType: "biz", Resource: "fiz"}
+	expected := Marshal(&o)
 
 	assert.Equal(t, expected, "orn:foo:bar:baz:biz/fiz")
 }

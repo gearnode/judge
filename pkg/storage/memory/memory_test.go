@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore_test
+package memorystore
 
 import (
-	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -31,7 +30,7 @@ func TestDescribeAll(t *testing.T) {
 }
 
 func TestDescribe(t *testing.T) {
-	store := memorystore.NewMemoryStore()
+	store := NewMemoryStore()
 	assert.Equal(t, 0, len(store.Data()["fridge"]))
 
 	_, err := store.Describe("fridge", "someID")
@@ -50,7 +49,7 @@ func TestDescribe(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	store := memorystore.NewMemoryStore()
+	store := NewMemoryStore()
 
 	// Ensure memory is empty
 	assert.Equal(t, 0, len(store.Data()["values"]))

@@ -14,20 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge_test
+package policy
 
 import (
 	"github.com/gearnode/judge/pkg/orn"
-	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 var (
-	policies = []judge.Policy{
+	policies = []Policy{
 		{
-			ID: "someid",
 			ORN: orn.ORN{
 				Partition:    "foo-company",
 				Service:      "judge",
@@ -38,13 +37,13 @@ var (
 			Name:        "allow_eat_tomato",
 			Description: "allow user to eat tomato",
 			Type:        "",
-			Document: judge.Document{
+			Document: Document{
 				Version: "2012-10-17",
-				Statement: []judge.Statement{
+				Statement: []Statement{
 					{
 						Effect: "Allow",
 						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -64,7 +63,7 @@ var (
 					{
 						Effect: "Deny",
 						Action: []string{"eatService:Describe"},
-						Resource: []judge.Resource{
+						Resource: []resource.Resource{
 							{
 								Partition:    "foo-company",
 								Service:      "eatService",
@@ -82,9 +81,22 @@ var (
 	store = memorystore.NewMemoryStore()
 )
 
+func TestNewPolicy(t *testing.T) {
+	pol := NewPolicy("some-name", "some description of the policy")
+	assert.Equal(t, "some-name", pol.Name)
+	assert.Equal(t, "some description of the policy", pol.Description)
+	assert.Equal(t, STANDALONE, pol.Type)
+	assert.Equal(t, VERSION, pol.Document.Version)
+	assert.Equal(t, "judge-org", pol.ORN.Partition)
+	assert.Equal(t, "judge-server", pol.ORN.Service)
+	assert.Equal(t, "", pol.ORN.AccountID)
+	assert.Equal(t, "policy", pol.ORN.ResourceType)
+	assert.Equal(t, "some-name", pol.ORN.Resource)
+}
+
 func prepare() {
-	for _, v := range policies {
-		store.Put("policies", v.ID, v)
+	for _, pol := range policies {
+		store.Put("policies", pol.Name, pol)
 	}
 }
 
@@ -101,7 +113,7 @@ func emptyDatabase(t *testing.T) {
 func TestCreatePolicy(t *testing.T) {
 	emptyDatabase(t)
 
-	ok, err := judge.CreatePolicy(
+	ok, err := CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -127,7 +139,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -151,7 +163,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -175,7 +187,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
@@ -199,7 +211,7 @@ func TestCreatePolicy(t *testing.T) {
 	clean()
 
 	emptyDatabase(t)
-	ok, err = judge.CreatePolicy(
+	ok, err = CreatePolicy(
 		store,
 		"policy demo",
 		"some description",
