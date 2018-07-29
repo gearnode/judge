@@ -13,6 +13,11 @@ os:
 env:
   - V=0.10.0
 
+cache:
+  directories:
+    - ~/.cache/bazel
+    - ~/.bazel_repository_cache
+
 before_install:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
