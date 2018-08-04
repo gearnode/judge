@@ -19,10 +19,9 @@ package judge
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/gearnode/judge/pkg/apiserver/svc"
-	"github.com/gearnode/judge/pkg/orn"
-	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/api/judge/v1alpha1"
 	"github.com/gearnode/judge/pkg/storage/memory"
+	"github.com/golang/protobuf/ptypes/empty"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -49,7 +48,7 @@ func (s *Server) Start() error {
 	opts := []grpc.ServerOption{grpc.Creds(creds)}
 
 	grpcServer := grpc.NewServer(opts...)
-	svc.RegisterJudgeServer(grpcServer, s)
+	v1alpha1.RegisterJudgeServer(grpcServer, s)
 
 	return grpcServer.Serve(lis)
 }
@@ -59,17 +58,32 @@ var (
 )
 
 // Authorize todo
-func (s *Server) Authorize(ctx context.Context, in *svc.AuthorizeRequest) (*svc.AuthorizeResponse, error) {
-	log.Printf("Receive Authorize Request for execute %s on %s", in.GetAction(), in.GetOrn())
-	o := orn.ORN{}
-	orn.Unmarshal(in.GetOrn(), &o)
-	ok, err := judge.Authorize(store, o, in.GetAction())
-	return &svc.AuthorizeResponse{Authorize: ok}, err
+func (s *Server) Authorize(ctx context.Context, in *v1alpha1.AuthorizeRequest) (*v1alpha1.AuthorizeResponse, error) {
+	log.Printf("Receive Authorize Request to execute")
+	return &v1alpha1.AuthorizeResponse{}, nil
 }
 
-// CreatePolicy todo
-func (s *Server) CreatePolicy(ctx context.Context, in *svc.CreatePolicyRequest) (*svc.CreatePolicyResponse, error) {
+func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (*v1alpha1.Policy, error) {
+	log.Printf("Receive GetPolicy Request to execute")
+	return &v1alpha1.Policy{}, nil
+}
+
+func (s *Server) Listpolicies(ctx context.Context, in *v1alpha1.ListPoliciesRequest) (*v1alpha1.ListPoliciesResponse, error) {
+	log.Printf("Receive ListPoliciesRequest Request to execute")
+	return &v1alpha1.ListPoliciesResponse{}, nil
+}
+
+func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequest) (*v1alpha1.Policy, error) {
 	log.Printf("Receive CreatePolicy Request to execute")
-	ok, err := judge.CreatePolicy(store, in.GetName(), in.GetDescription(), in.GetDocument())
-	return &svc.CreatePolicyResponse{Ok: ok, Error: err.Error()}, err
+	return &v1alpha1.Policy{}, nil
+}
+
+func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequest) (*v1alpha1.Policy, error) {
+	log.Printf("Receive UpdateDocument Resquest to execute")
+	return &v1alpha1.Policy{}, nil
+}
+
+func (s *Server) DeletePolicy(ctx context.Context, in *v1alpha1.DeletePolicyRequest) (*empty.Empty, error) {
+	log.Printf("Receive DeletePolicy Resquest to execute")
+	return &empty.Empty{}, nil
 }

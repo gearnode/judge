@@ -48,6 +48,7 @@ var (
 // of the evaluation. All policies are evaluated, and the result is always
 // that the request is either allowed or denied.
 func Authorize(s storage.DB, who orn.ORN, what string, something orn.ORN, context map[string]string) (bool, error) {
+	// TODO: remove storage dependencies
 
 	defaultEffect := denyAction
 
