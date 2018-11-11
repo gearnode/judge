@@ -29,8 +29,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 // Server represent a server instance. This struct store the
@@ -91,17 +93,21 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	res := v1alpha1.Policy{}
 	pol, err := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
 	if err != nil {
-		return &v1alpha1.Policy{}, err
+		return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	res.Orn = orn.Marshal(&pol.ORN)
 	res.Name = pol.Name
 	res.Description = pol.Description
 
+	if _, err := store.Describe("policies", res.Orn); err == nil {
+		return &v1alpha1.Policy{}, status.Error(codes.AlreadyExists, "the policy already exists")
+	}
+
 	for _, v := range in.GetPolicy().GetDocument().GetStatements() {
 		stm, err := policy.NewStatement(v.GetEffect(), v.GetActions(), v.GetResources())
 		if err != nil {
-			return &v1alpha1.Policy{}, err
+			return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
 		}
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}
