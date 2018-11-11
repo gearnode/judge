@@ -29,7 +29,7 @@ service Judge {
   rpc GetPolicy(GetPolicyRequest) returns (Policy) {}
 
   // Lists policies.
-  rpc Listpolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {}
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {}
 
   // Creates a new policy.
   rpc CreatePolicy(CreatePolicyRequest) returns (Policy) {}

@@ -17,12 +17,10 @@ limitations under the License.
 package policy // import "github.com/gearnode/judge/pkg/policy"
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy/resource"
-	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gosimple/slug"
 )
 
@@ -86,7 +84,11 @@ var (
 )
 
 // NewPolicy create a new policy document.
-func NewPolicy(name string, description string) *Policy {
+func NewPolicy(name string, description string) (*Policy, error) {
+	if name == "" {
+		return &Policy{}, errors.New("the policy object require a non empty name")
+	}
+
 	return &Policy{
 		ORN: orn.ORN{
 			Partition: PARTITION, Service: SERVICE,
@@ -98,29 +100,29 @@ func NewPolicy(name string, description string) *Policy {
 		Document: Document{
 			Version: VERSION,
 		},
-	}
+	}, nil
 }
 
 func NewStatement(effect string, actions []string, resources []string) (*Statement, error) {
 	if effect != "Allow" && effect != "Deny" {
-		return &Statement{}, fmt.Errorf("The effect %s is not supported."+
+		return &Statement{}, fmt.Errorf("the effect %s is not supported."+
 			" Supported effects are \"Allow\" or \"Deny\"", effect)
 	}
 
 	if len(resources) == 0 {
-		return &Statement{}, errors.New("The statement object require at least" +
-			" one resource.")
+		return &Statement{}, errors.New("the statement object require at least" +
+			" one resource")
 	}
 
 	if len(actions) == 0 {
-		return &Statement{}, errors.New("The statement object require at least" +
-			" one action.")
+		return &Statement{}, errors.New("the statement object require at least" +
+			" one action")
 	}
 
 	for _, action := range actions {
 		if action == "" {
-			return &Statement{}, errors.New("The statement object does not support" +
-				" empty action.")
+			return &Statement{}, errors.New("the statement object does not support" +
+				" empty action")
 		}
 	}
 
@@ -138,53 +140,4 @@ func NewStatement(effect string, actions []string, resources []string) (*Stateme
 	}
 
 	return &stmt, nil
-}
-
-// CreatePolicy foo
-func CreatePolicy(store storage.DB, name string, description string, doc string) (bool, error) {
-	pol := NewPolicy(name, description)
-
-	// TODO: use reflect for data casting
-
-	document := make(map[string]interface{})
-	err := json.Unmarshal([]byte(doc), &document)
-	if err != nil {
-		return false, err
-	}
-
-	stmts := document["statement"].([]interface{})
-	pol.Document.Statement = make([]Statement, len(stmts))
-
-	for i, raw := range stmts {
-		data := raw.(map[string]interface{})
-		stmt, err := NewStatement(
-			data["effect"].(string),
-			toStringArray(data["action"].([]interface{})),
-			toStringArray(data["resource"].([]interface{})),
-		)
-
-		if err != nil {
-			return false, err
-		}
-
-		pol.Document.Statement[i] = *stmt
-	}
-
-	data := make(map[string]interface{})
-	if json.Unmarshal([]byte(doc), &data) != nil {
-		return false, ErrMalformedPolicy
-	}
-
-	store.Put("policies", pol.Name, pol)
-	return true, nil
-}
-
-func toStringArray(data []interface{}) []string {
-	strs := make([]string, len(data))
-
-	for i := range data {
-		strs[i] = data[i].(string)
-	}
-
-	return strs
 }
