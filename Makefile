@@ -1,7 +1,8 @@
 DEP	= dep
 
-Gopkg.lock: Gopkg.toml
-	$(DEP) ensure -update
+bin/judgeserver: cmd/judgeserver/*.go pkg/**/*.go
+	@mkdir -p bin
+	go build -o bin/judgeserver cmd/judgeserver/main.go
 
 .PHONY: test
 test:
@@ -16,3 +17,6 @@ protoc:
 gofmt:
 	gofmt -w -s pkg/ cmd/
 
+.PHONY: clean
+clean:
+	rm bin/judgeserver

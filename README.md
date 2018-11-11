@@ -72,6 +72,11 @@ TODO: explain storage solution
 - Explain Organization
 - Explain Access Request
 
+
+## Usage
+
+- mkcert 127.0.0.1
+
 ## Roadmap
 
 ## Contributing

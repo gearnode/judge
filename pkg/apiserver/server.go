@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package judge
+package apiserver // import "github.com/gearnode/judge/pkg/apiserver"
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/gearnode/judge/api/judge/v1alpha1"
 	"github.com/gearnode/judge/pkg/storage/memory"
@@ -32,9 +31,9 @@ import (
 // Server represent a server instance. This struct store the
 // server configuration.
 type Server struct {
-	Port int
-	Addr string
-	Cert *tls.Certificate
+	Port  int
+	Addr  string
+	Creds *credentials.TransportCredentials
 }
 
 // Start a new server
@@ -44,10 +43,13 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	creds := credentials.NewServerTLSFromCert(s.Cert)
-	opts := []grpc.ServerOption{grpc.Creds(creds)}
+	var grpcServer *grpc.Server
+	if s.Creds != nil {
+		grpcServer = grpc.NewServer(grpc.Creds(*s.Creds))
+	} else {
+		grpcServer = grpc.NewServer()
+	}
 
-	grpcServer := grpc.NewServer(opts...)
 	v1alpha1.RegisterJudgeServer(grpcServer, s)
 
 	return grpcServer.Serve(lis)
