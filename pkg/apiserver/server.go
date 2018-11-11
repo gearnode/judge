@@ -17,9 +17,6 @@ limitations under the License.
 package apiserver // import "github.com/gearnode/judge/pkg/apiserver"
 
 import (
-	"fmt"
-	"net"
-
 	"github.com/gearnode/judge/api/judge/v1alpha1"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
@@ -30,38 +27,16 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
 // Server represent a server instance. This struct store the
 // server configuration.
-type Server struct {
-	Port  int
-	Addr  string
-	Creds *credentials.TransportCredentials
-}
+type Server struct{}
 
-// Start a new server
-func (s *Server) Start() error {
-	log.Info("Starting judgeserver on ", s.Addr, ":", s.Port)
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.Addr, s.Port))
-	if err != nil {
-		return err
-	}
-
-	var grpcServer *grpc.Server
-	if s.Creds != nil {
-		grpcServer = grpc.NewServer(grpc.Creds(*s.Creds))
-	} else {
-		grpcServer = grpc.NewServer()
-	}
-
-	reflection.Register(grpcServer)
-	v1alpha1.RegisterJudgeServer(grpcServer, s)
-
-	return grpcServer.Serve(lis)
+func Register(srv *grpc.Server) {
+	apiserver := &Server{}
+	v1alpha1.RegisterJudgeServer(srv, apiserver)
 }
 
 var (

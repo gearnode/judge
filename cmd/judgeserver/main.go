@@ -19,10 +19,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 	"os"
 
 	"github.com/gearnode/judge/pkg/apiserver"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -40,17 +43,26 @@ func main() {
 		os.Exit(0)
 	}
 
-	srv := apiserver.Server{Port: *port, Addr: *addr}
+	fmt.Printf("Starting Judge apiserver on %s:%d\n", *addr, *port)
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *addr, *port))
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	srv := grpc.NewServer()
 
 	if *tls {
 		creds, err := credentials.NewServerTLSFromFile(*crt, *key)
 		if err != nil {
-			fmt.Printf("could not load TLS keys: %s\n", err)
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-
-		srv.Creds = &creds
+		srv = grpc.NewServer(grpc.Creds(creds))
 	}
 
-	srv.Start()
+	reflection.Register(srv)
+	apiserver.Register(srv)
+
+	srv.Serve(lis)
 }
