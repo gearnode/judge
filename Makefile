@@ -6,12 +6,13 @@ GOFMT = gofmt
 .PHONY: all
 all: go.sum api/judge/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl
 
-bin/judgeserver: cmd/judgeserver/*.go pkg/**/*.go
-	@mkdir -p bin
+bin:
+	mkdir -p bin
+
+bin/judgeserver: bin cmd/judgeserver/*.go pkg/**/*.go
 	$(GO) build -o bin/judgeserver cmd/judgeserver/main.go
 
-bin/judgectl: cmd/judgectl/*go pkg/**/*.go
-	@mkdir -p bin
+bin/judgectl: bin cmd/judgectl/*go pkg/**/*.go
 	$(GO) build -o bin/judgectl cmd/judgectl/main.go
 
 go.sum: go.mod
