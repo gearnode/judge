@@ -17,68 +17,8 @@ limitations under the License.
 package policy
 
 import (
-	"github.com/gearnode/judge/pkg/orn"
-	"github.com/gearnode/judge/pkg/policy/resource"
-	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"testing"
-)
-
-var (
-	policies = []Policy{
-		{
-			ORN: orn.ORN{
-				Partition:    "foo-company",
-				Service:      "judge",
-				AccountID:    "666e735d-d046-4b8a-b2e8-407cb837a101",
-				ResourceType: "policy",
-				Resource:     "someid",
-			},
-			Name:        "allow_eat_tomato",
-			Description: "allow user to eat tomato",
-			Type:        "",
-			Document: Document{
-				Version: "2012-10-17",
-				Statement: []Statement{
-					{
-						Effect: "Allow",
-						Action: []string{"eatService:Take", "eatService:Eat", "eatService:Describe"},
-						Resource: []resource.Resource{
-							{
-								Partition:    "foo-company",
-								Service:      "eatService",
-								AccountID:    "",
-								ResourceType: "food",
-								Resource:     "*",
-							},
-							{
-								Partition:    "foo-company",
-								Service:      "eatService",
-								AccountID:    "",
-								ResourceType: "stock",
-								Resource:     "tomato/*",
-							},
-						},
-					},
-					{
-						Effect: "Deny",
-						Action: []string{"eatService:Describe"},
-						Resource: []resource.Resource{
-							{
-								Partition:    "foo-company",
-								Service:      "eatService",
-								AccountID:    "",
-								ResourceType: "food",
-								Resource:     "*",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	store = memorystore.NewMemoryStore()
 )
 
 func TestNewPolicy(t *testing.T) {
@@ -94,143 +34,72 @@ func TestNewPolicy(t *testing.T) {
 	assert.Equal(t, "some-name", pol.ORN.Resource)
 }
 
-func prepare() {
-	for _, pol := range policies {
-		store.Put("policies", pol.Name, pol)
-	}
-}
+func TestNewStatement(t *testing.T) {
+	actions := []string{"edit", "show"}
+	resources := []string{"orn:judge-org:policy-service::foo/bar"}
+	effect := "Allow"
 
-func clean() {
-	store = memorystore.NewMemoryStore()
-}
+	t.Run("When the effect is not allowed", func(t *testing.T) {
+		stmt, err := NewStatement("NotAllowed", actions, resources)
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
 
-func emptyDatabase(t *testing.T) {
-	l, err := store.DescribeAll("policies")
+		stmt, err = NewStatement("Allowed", actions, resources)
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+	})
+
+	t.Run("When the effect is allowed", func(t *testing.T) {
+		stmt, err := NewStatement("Allow", actions, resources)
+		assert.Nil(t, err)
+		assert.Equal(t, stmt.Effect, "Allow")
+
+		stmt, err = NewStatement("Deny", actions, resources)
+		assert.Nil(t, err)
+		assert.Equal(t, stmt.Effect, "Deny")
+	})
+
+	t.Run("When resources is empty", func(t *testing.T) {
+		stmt, err := NewStatement(effect, actions, []string{})
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+	})
+
+	t.Run("When actions is empty", func(t *testing.T) {
+		stmt, err := NewStatement(effect, []string{}, resources)
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+	})
+
+	t.Run("When actions contain at least one empty action", func(t *testing.T) {
+		stmt, err := NewStatement(effect, []string{"edit", "", "show"}, resources)
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+
+		stmt, err = NewStatement(effect, []string{"edit", "", "", ""}, resources)
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+	})
+
+	t.Run("When at least one resource is invalid", func(t *testing.T) {
+		stmt, err := NewStatement(effect, actions, []string{"foo"})
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+
+		stmt, err = NewStatement(effect, actions, []string{"orn:judge-org:policy-service::foo/hello", "foo", "orn:judge-org:policy-service::foo/bar"})
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+
+		stmt, err = NewStatement(effect, actions, []string{"", "orn:judge-org:policy-service::foo/bar"})
+		assert.NotNil(t, err)
+		assert.Equal(t, stmt, &Statement{})
+	})
+
+	stmt, err := NewStatement(effect, actions, resources)
 	assert.Nil(t, err)
-	assert.Equal(t, 0, len(l))
-}
-
-func TestCreatePolicy(t *testing.T) {
-	emptyDatabase(t)
-
-	ok, err := CreatePolicy(
-		store,
-		"policy demo",
-		"some description",
-		`
-		{
-			"version": "2018-02-15",
-			"statement": [
-				{
-					"effect": "Allow",
-					"action": ["eatService:Take"],
-					"resource": ["orn:judge-org:policy-service::foo/bar"]
-				}
-			]
-		}
-		`,
-	)
-
-	assert.True(t, ok)
-	assert.Nil(t, err)
-	l, err := store.DescribeAll("policies")
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(l))
-	clean()
-
-	emptyDatabase(t)
-	ok, err = CreatePolicy(
-		store,
-		"policy demo",
-		"some description",
-		`
-		{
-			"version": "2018-02-15",
-			"statement": [
-				{
-					"effect": "",
-					"action": ["eatService:Take"],
-					"resource": ["orn:judge-org:policy-service::foo/bar"]
-				}
-			]
-		}
-		`,
-	)
-
-	assert.False(t, ok)
-	assert.NotNil(t, err)
-	emptyDatabase(t)
-	clean()
-
-	emptyDatabase(t)
-	ok, err = CreatePolicy(
-		store,
-		"policy demo",
-		"some description",
-		`
-		{
-			"version": "2018-02-15",
-			"statement": [
-				{
-					"effect": "Other",
-					"action": ["eatService:Take"],
-					"resource": ["orn:judge-org:policy-service::foo/bar"]
-				}
-			]
-		}
-		`,
-	)
-
-	assert.False(t, ok)
-	assert.NotNil(t, err)
-	emptyDatabase(t)
-	clean()
-
-	emptyDatabase(t)
-	ok, err = CreatePolicy(
-		store,
-		"policy demo",
-		"some description",
-		`
-		{
-			"version": "2018-02-15",
-			"statement": [
-				{
-					"effect": "Deny",
-					"action": ["eatService:Take"],
-					"resource": []
-				}
-			]
-		}
-		`,
-	)
-
-	assert.False(t, ok)
-	assert.NotNil(t, err)
-	emptyDatabase(t)
-	clean()
-
-	emptyDatabase(t)
-	ok, err = CreatePolicy(
-		store,
-		"policy demo",
-		"some description",
-		`
-		{
-			"version": "2018-02-15",
-			"statement": [
-				{
-					"effect": "Deny",
-					"action": [],
-					"resource": ["orn:judge-org:policy-service::foo/bar"]
-				}
-			]
-		}
-		`,
-	)
-
-	assert.False(t, ok)
-	assert.NotNil(t, err)
-	emptyDatabase(t)
-	clean()
+	assert.Equal(t, stmt.Action, actions)
+	assert.Equal(t, len(stmt.Resource), 1)
+	assert.Equal(t, stmt.Effect, "Allow")
+	assert.Equal(t, stmt.Resource[0].Partition, "judge-org")
+	assert.Equal(t, stmt.Resource[0].Service, "policy-service")
 }

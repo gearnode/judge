@@ -17,12 +17,10 @@ limitations under the License.
 package policy // import "github.com/gearnode/judge/pkg/policy"
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy/resource"
-	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gosimple/slug"
 )
 
@@ -138,53 +136,4 @@ func NewStatement(effect string, actions []string, resources []string) (*Stateme
 	}
 
 	return &stmt, nil
-}
-
-// CreatePolicy foo
-func CreatePolicy(store storage.DB, name string, description string, doc string) (bool, error) {
-	pol := NewPolicy(name, description)
-
-	// TODO: use reflect for data casting
-
-	document := make(map[string]interface{})
-	err := json.Unmarshal([]byte(doc), &document)
-	if err != nil {
-		return false, err
-	}
-
-	stmts := document["statement"].([]interface{})
-	pol.Document.Statement = make([]Statement, len(stmts))
-
-	for i, raw := range stmts {
-		data := raw.(map[string]interface{})
-		stmt, err := NewStatement(
-			data["effect"].(string),
-			toStringArray(data["action"].([]interface{})),
-			toStringArray(data["resource"].([]interface{})),
-		)
-
-		if err != nil {
-			return false, err
-		}
-
-		pol.Document.Statement[i] = *stmt
-	}
-
-	data := make(map[string]interface{})
-	if json.Unmarshal([]byte(doc), &data) != nil {
-		return false, ErrMalformedPolicy
-	}
-
-	store.Put("policies", pol.Name, pol)
-	return true, nil
-}
-
-func toStringArray(data []interface{}) []string {
-	strs := make([]string, len(data))
-
-	for i := range data {
-		strs[i] = data[i].(string)
-	}
-
-	return strs
 }

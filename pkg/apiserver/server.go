@@ -103,6 +103,8 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}
 
+	store.Put("policies", res.Orn, pol)
+
 	statements := make([]*v1alpha1.Statement, len(pol.Document.Statement))
 	for i, v := range pol.Document.Statement {
 
