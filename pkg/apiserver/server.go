@@ -24,6 +24,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 )
@@ -50,6 +51,7 @@ func (s *Server) Start() error {
 		grpcServer = grpc.NewServer()
 	}
 
+	reflection.Register(grpcServer)
 	v1alpha1.RegisterJudgeServer(grpcServer, s)
 
 	return grpcServer.Serve(lis)
