@@ -5,7 +5,7 @@ os:
   - linux
 
 script:
-  - make test
+  - make
 
 notifications:
   email: false

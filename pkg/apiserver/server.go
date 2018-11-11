@@ -34,6 +34,7 @@ import (
 // server configuration.
 type Server struct{}
 
+// Register register to gRPC Service
 func Register(srv *grpc.Server) {
 	apiserver := &Server{}
 	v1alpha1.RegisterJudgeServer(srv, apiserver)
@@ -43,25 +44,25 @@ var (
 	store = memorystore.NewMemoryStore()
 )
 
-// Authorize implement judge.api.v1beta1.Judge.Authorize
+// Authorize implement judge.api.v1alpha1.Judge.Authorize
 func (s *Server) Authorize(ctx context.Context, in *v1alpha1.AuthorizeRequest) (*v1alpha1.AuthorizeResponse, error) {
 	log.Info("Receive Authorize Request to execute")
 	return &v1alpha1.AuthorizeResponse{}, nil
 }
 
-// GetPolicy implement judge.api.v1beta1.Judge.GetPolicy
+// GetPolicy implement judge.api.v1alpha1.Judge.GetPolicy
 func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (*v1alpha1.Policy, error) {
 	log.Info("Receive GetPolicy Request to execute")
 	return &v1alpha1.Policy{}, nil
 }
 
-// ListPolicies implement judge.api.v1beta1.Judge.ListPolicies
+// ListPolicies implement judge.api.vbeta1.Judge.ListPolicies
 func (s *Server) ListPolicies(ctx context.Context, in *v1alpha1.ListPoliciesRequest) (*v1alpha1.ListPoliciesResponse, error) {
 	log.Info("Receive ListPoliciesRequest Request to execute")
 	return &v1alpha1.ListPoliciesResponse{}, nil
 }
 
-// CreatePolicy implement judge.api.v1beta1.Judge.CreatePolicy
+// CreatePolicy implement judge.api.v1alpha1.Judge.CreatePolicy
 func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequest) (*v1alpha1.Policy, error) {
 	log.Info("Receive CreatePolicy Request to execute")
 
@@ -111,13 +112,13 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	return &res, nil
 }
 
-// UpdatePolicy implement judge.api.v1beta1.Judge.UpdatePolicy
+// UpdatePolicy implement judge.api.v1alpha1.Judge.UpdatePolicy
 func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequest) (*v1alpha1.Policy, error) {
 	log.Info("Receive UpdatePolicy Resquest to execute")
 	return &v1alpha1.Policy{}, nil
 }
 
-// DeletePolicy implement judge.api.v1beta1.Judge.DeletePolicy
+// DeletePolicy implement judge.api.v1alpha1.Judge.DeletePolicy
 func (s *Server) DeletePolicy(ctx context.Context, in *v1alpha1.DeletePolicyRequest) (*empty.Empty, error) {
 	log.Printf("Receive DeletePolicy Resquest to execute")
 	return &empty.Empty{}, nil
