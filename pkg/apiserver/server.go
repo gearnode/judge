@@ -40,6 +40,7 @@ type Server struct {
 
 // Start a new server
 func (s *Server) Start() error {
+	log.Info("Starting judgeserver on ", s.Addr, ":", s.Port)
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.Addr, s.Port))
 	if err != nil {
 		return err
