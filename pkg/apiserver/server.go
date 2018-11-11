@@ -18,15 +18,16 @@ package apiserver // import "github.com/gearnode/judge/pkg/apiserver"
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/gearnode/judge/api/judge/v1alpha1"
 	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/golang/protobuf/ptypes/empty"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 // Server represent a server instance. This struct store the
@@ -61,32 +62,37 @@ var (
 	store = memorystore.NewMemoryStore()
 )
 
-// Authorize todo
+// Authorize implement judge.api.v1beta1.Judge.Authorize
 func (s *Server) Authorize(ctx context.Context, in *v1alpha1.AuthorizeRequest) (*v1alpha1.AuthorizeResponse, error) {
-	log.Printf("Receive Authorize Request to execute")
+	log.Info("Receive Authorize Request to execute")
 	return &v1alpha1.AuthorizeResponse{}, nil
 }
 
+// GetPolicy implement judge.api.v1beta1.Judge.GetPolicy
 func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (*v1alpha1.Policy, error) {
-	log.Printf("Receive GetPolicy Request to execute")
+	log.Info("Receive GetPolicy Request to execute")
 	return &v1alpha1.Policy{}, nil
 }
 
-func (s *Server) Listpolicies(ctx context.Context, in *v1alpha1.ListPoliciesRequest) (*v1alpha1.ListPoliciesResponse, error) {
-	log.Printf("Receive ListPoliciesRequest Request to execute")
+// ListPolicies implement judge.api.v1beta1.Judge.ListPolicies
+func (s *Server) ListPolicies(ctx context.Context, in *v1alpha1.ListPoliciesRequest) (*v1alpha1.ListPoliciesResponse, error) {
+	log.Info("Receive ListPoliciesRequest Request to execute")
 	return &v1alpha1.ListPoliciesResponse{}, nil
 }
 
+// CreatePolicy implement judge.api.v1beta1.Judge.CreatePolicy
 func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequest) (*v1alpha1.Policy, error) {
-	log.Printf("Receive CreatePolicy Request to execute")
+	log.Info("Receive CreatePolicy Request to execute")
 	return &v1alpha1.Policy{}, nil
 }
 
+// UpdatePolicy implement judge.api.v1beta1.Judge.UpdatePolicy
 func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequest) (*v1alpha1.Policy, error) {
-	log.Printf("Receive UpdateDocument Resquest to execute")
+	log.Info("Receive UpdatePolicy Resquest to execute")
 	return &v1alpha1.Policy{}, nil
 }
 
+// DeletePolicy implement judge.api.v1beta1.Judge.DeletePolicy
 func (s *Server) DeletePolicy(ctx context.Context, in *v1alpha1.DeletePolicyRequest) (*empty.Empty, error) {
 	log.Printf("Receive DeletePolicy Resquest to execute")
 	return &empty.Empty{}, nil
