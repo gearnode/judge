@@ -4,8 +4,11 @@ bin/judgeserver: cmd/judgeserver/*.go pkg/**/*.go
 	@mkdir -p bin
 	go build -o bin/judgeserver cmd/judgeserver/main.go
 
+go.sum: go.mod
+	go get
+
 .PHONY: test
-test:
+test: go.sum
 	go test -v ./pkg/...
 	go test -v ./cmd/...
 
