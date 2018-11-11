@@ -1,0 +1,99 @@
+// Copyright 2018 The Judge Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//    http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package judge.api.v1alpha1;
+
+option go_package = "github.com/gearnode/judge/api/judge/v1alpha1";
+
+import "api/judge/v1alpha1/policy.proto";
+import "google/protobuf/empty.proto";
+
+// Specification of the Judge API.
+
+// The Judge service.
+service Judge {
+  // Gets a single policy.
+  rpc GetPolicy(GetPolicyRequest) returns (Policy) {}
+
+  // Lists policies.
+  rpc Listpolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {}
+
+  // Creates a new policy.
+  rpc CreatePolicy(CreatePolicyRequest) returns (Policy) {}
+
+  // Updates or inserts a policy.
+  rpc UpdatePolicy(UpdatePolicyRequest) returns (Policy) {}
+
+  // Deletes a policy.
+  rpc DeletePolicy(DeletePolicyRequest) returns (google.protobuf.Empty) {}
+
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {}
+}
+
+message GetPolicyRequest {
+  // The orn of the policy to retrieve.
+  string orn = 1;
+}
+
+message ListPoliciesRequest {
+  // The maximum number of policies to return.
+  int32 page_size = 1;
+
+  // The `next_page_token` value returned from a previous List request, if any.
+  string page_token = 2;
+
+  // The order to sort results by. For example: `priority desc, name`.
+  string order_by = 3;
+}
+
+message ListPoliciesResponse {
+ // The Policies found.
+  repeated Policy policies = 1;
+
+  // The next page token.
+  string next_page_token = 2;
+}
+
+message CreatePolicyRequest {
+  // The client-assigned policy object resource name to use for this document.
+  //
+  // Optional. If not specified, an ID will be assigned by the service.
+  string orn = 1;
+
+  // The policy to create. `orn` must not be set.
+  Policy policy = 2;
+}
+
+message UpdatePolicyRequest {
+  // The updated policy.
+  // Creates the policy if it does not already exist.
+  Policy policy = 1;
+}
+
+message DeletePolicyRequest {
+  // The object resource name of the Policy to delete. In the format:
+  // `orn:judge-org:judge-service::policy/default_policy`.
+  string orn = 1;
+}
+
+message AuthorizeRequest {
+  string action = 1;
+  string object = 2;
+  map<string, string> context = 3;
+}
+
+message AuthorizeResponse {
+}
