@@ -21,6 +21,9 @@ import (
 	"net"
 
 	"github.com/gearnode/judge/api/judge/v1alpha1"
+	"github.com/gearnode/judge/pkg/orn"
+	"github.com/gearnode/judge/pkg/policy"
+	"github.com/gearnode/judge/pkg/policy/resource"
 	"github.com/gearnode/judge/pkg/storage/memory"
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/sirupsen/logrus"
@@ -84,7 +87,42 @@ func (s *Server) ListPolicies(ctx context.Context, in *v1alpha1.ListPoliciesRequ
 // CreatePolicy implement judge.api.v1beta1.Judge.CreatePolicy
 func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequest) (*v1alpha1.Policy, error) {
 	log.Info("Receive CreatePolicy Request to execute")
-	return &v1alpha1.Policy{}, nil
+
+	res := v1alpha1.Policy{}
+	pol := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
+
+	res.Orn = orn.Marshal(&pol.ORN)
+	res.Name = pol.Name
+	res.Description = pol.Description
+
+	for _, v := range in.GetPolicy().GetDocument().GetStatements() {
+		stm, err := policy.NewStatement(v.GetEffect(), v.GetActions(), v.GetResources())
+		if err != nil {
+			panic(err)
+		}
+		pol.Document.Statement = append(pol.Document.Statement, *stm)
+	}
+
+	statements := make([]*v1alpha1.Statement, len(pol.Document.Statement))
+	for i, v := range pol.Document.Statement {
+
+		stm := v1alpha1.Statement{Effect: v.Effect, Actions: v.Action}
+
+		for _, v := range v.Resource {
+			r := resource.Marshal(&v)
+			stm.Resources = append(stm.Resources, r)
+		}
+		statements[i] = &stm
+	}
+
+	doc := v1alpha1.Document{
+		Version:    pol.Document.Version,
+		Statements: statements,
+	}
+
+	res.Document = &doc
+
+	return &res, nil
 }
 
 // UpdatePolicy implement judge.api.v1beta1.Judge.UpdatePolicy
