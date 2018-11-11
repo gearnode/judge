@@ -84,7 +84,11 @@ var (
 )
 
 // NewPolicy create a new policy document.
-func NewPolicy(name string, description string) *Policy {
+func NewPolicy(name string, description string) (*Policy, error) {
+	if name == "" {
+		return &Policy{}, errors.New("the policy object require a non empty name")
+	}
+
 	return &Policy{
 		ORN: orn.ORN{
 			Partition: PARTITION, Service: SERVICE,
@@ -96,29 +100,29 @@ func NewPolicy(name string, description string) *Policy {
 		Document: Document{
 			Version: VERSION,
 		},
-	}
+	}, nil
 }
 
 func NewStatement(effect string, actions []string, resources []string) (*Statement, error) {
 	if effect != "Allow" && effect != "Deny" {
-		return &Statement{}, fmt.Errorf("The effect %s is not supported."+
+		return &Statement{}, fmt.Errorf("the effect %s is not supported."+
 			" Supported effects are \"Allow\" or \"Deny\"", effect)
 	}
 
 	if len(resources) == 0 {
-		return &Statement{}, errors.New("The statement object require at least" +
-			" one resource.")
+		return &Statement{}, errors.New("the statement object require at least" +
+			" one resource")
 	}
 
 	if len(actions) == 0 {
-		return &Statement{}, errors.New("The statement object require at least" +
-			" one action.")
+		return &Statement{}, errors.New("the statement object require at least" +
+			" one action")
 	}
 
 	for _, action := range actions {
 		if action == "" {
-			return &Statement{}, errors.New("The statement object does not support" +
-				" empty action.")
+			return &Statement{}, errors.New("the statement object does not support" +
+				" empty action")
 		}
 	}
 

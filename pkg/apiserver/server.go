@@ -89,7 +89,10 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	log.Info("Receive CreatePolicy Request to execute")
 
 	res := v1alpha1.Policy{}
-	pol := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
+	pol, err := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
+	if err != nil {
+		return &v1alpha1.Policy{}, err
+	}
 
 	res.Orn = orn.Marshal(&pol.ORN)
 	res.Name = pol.Name
@@ -98,7 +101,7 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	for _, v := range in.GetPolicy().GetDocument().GetStatements() {
 		stm, err := policy.NewStatement(v.GetEffect(), v.GetActions(), v.GetResources())
 		if err != nil {
-			panic(err)
+			return &v1alpha1.Policy{}, err
 		}
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}

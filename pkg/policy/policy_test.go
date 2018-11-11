@@ -17,14 +17,33 @@ limitations under the License.
 package policy
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewPolicy(t *testing.T) {
-	pol := NewPolicy("some-name", "some description of the policy")
+	pol, err := NewPolicy("some-name", "some description of the policy")
+	assert.Nil(t, err)
 	assert.Equal(t, "some-name", pol.Name)
 	assert.Equal(t, "some description of the policy", pol.Description)
+	assert.Equal(t, STANDALONE, pol.Type)
+	assert.Equal(t, VERSION, pol.Document.Version)
+	assert.Equal(t, "judge-org", pol.ORN.Partition)
+	assert.Equal(t, "judge-server", pol.ORN.Service)
+	assert.Equal(t, "", pol.ORN.AccountID)
+	assert.Equal(t, "policy", pol.ORN.ResourceType)
+	assert.Equal(t, "some-name", pol.ORN.Resource)
+
+	pol, err = NewPolicy("", "some description of the policy")
+	assert.NotNil(t, err)
+	assert.Equal(t, err, errors.New("the policy object require a non empty name"))
+	assert.Equal(t, pol, &Policy{})
+
+	pol, err = NewPolicy("some-name", "")
+	assert.Nil(t, err)
+	assert.Equal(t, "some-name", pol.Name)
+	assert.Equal(t, "", pol.Description)
 	assert.Equal(t, STANDALONE, pol.Type)
 	assert.Equal(t, VERSION, pol.Document.Version)
 	assert.Equal(t, "judge-org", pol.ORN.Partition)
