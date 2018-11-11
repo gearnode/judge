@@ -10,12 +10,14 @@ bin/judgeserver: cmd/judgeserver/*.go pkg/**/*.go
 	@mkdir -p bin
 	$(GO) build -o bin/judgeserver cmd/judgeserver/main.go
 
-bin/judgectl: cmd/judgectl/*go
+bin/judgectl: cmd/judgectl/*go pkg/**/*.go
 	@mkdir -p bin
 	$(GO) build -o bin/judgectl cmd/judgectl/main.go
 
 go.sum: go.mod
 	$(GO) get
+	$(GO) mod tidy
+	$(GO) mod vendor
 
 api/judge/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
 	protoc -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
