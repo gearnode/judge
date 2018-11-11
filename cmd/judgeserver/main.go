@@ -26,12 +26,12 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 8443, "The port")
-	addr := flag.String("addr", "127.0.0.1", "The addr")
-	crt := flag.String("tls-crt", "", "The cert")
-	key := flag.String("tls-key", "", "The key")
-	help := flag.Bool("help", false, "Help")
-	tls := flag.Bool("tls", false, "Enable TLS")
+	port := flag.Int("port", 5053, "Runs judgeserver on the specified port")
+	addr := flag.String("addr", "127.0.0.1", "Binds judgeserver to the specified IP")
+	crt := flag.String("tls-crt", "", "The certificate for the TLS mode")
+	key := flag.String("tls-key", "", "The certificate key for TLS mode")
+	help := flag.Bool("help", false, "Shows this help message")
+	tls := flag.Bool("tls", false, "Enable TLS mode")
 
 	flag.Parse()
 
