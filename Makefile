@@ -1,4 +1,3 @@
-MAKE = make
 GO = go
 GOFMT = gofmt
 
