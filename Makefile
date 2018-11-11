@@ -11,7 +11,7 @@ test:
 
 .PHONY: protoc
 protoc:
-	protoc -I. --go_out=plugins=grpc:$GOPATH/src api/judge/v1alpha1/*.proto
+	protoc -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
 
 .PHONY: gofmt
 gofmt:
