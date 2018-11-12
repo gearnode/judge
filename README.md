@@ -84,6 +84,10 @@ This project use go mod beta feature, so you should set this env var:
 export GO111MODULE=on
 ```
 
+
+**TODO:**
+- [ ] running make clean and make result on a mistake with the dependencies (delete or added without any reasons...)
+
 ## Roadmap
 
 ## Contributing
