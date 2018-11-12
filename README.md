@@ -77,6 +77,13 @@ TODO: explain storage solution
 
 - mkcert 127.0.0.1
 
+:warning: this project can only be used in your gopath directory. Generate protos are painful and I can't lose time again.
+
+This project use go mod beta feature, so you should set this env var:
+```
+export GO111MODULE=on
+```
+
 ## Roadmap
 
 ## Contributing
