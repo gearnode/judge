@@ -1,10 +1,11 @@
 GO = go
 GOFMT = gofmt
+PROTOC = protoc
 
 .TARGET: all
 
 .PHONY: all
-all: go.sum api/judge/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl
+all: go.sum api/judge/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt
 
 bin:
 	mkdir -p bin
@@ -15,13 +16,25 @@ bin/judgeserver: bin cmd/judgeserver/*.go pkg/**/*.go
 bin/judgectl: bin cmd/judgectl/*go pkg/**/*.go
 	$(GO) build -o bin/judgectl cmd/judgectl/main.go
 
+bin/mkcert:
+	$(GO) get -u github.com/FiloSottile/mkcert
+	ln -fs $(GOPATH)/bin/mkcert bin/mkcert
+
+priv:
+	mkdir -p priv
+
+priv/server.crt: bin/mkcert priv
+	mkcert 127.0.0.1
+	mv ./127.0.0.1.pem ./priv/server.crt
+	mv ./127.0.0.1-key.pem ./priv/server.key
+
 go.sum: go.mod
 	$(GO) get
-	$(GO) mod tidy
 	$(GO) mod vendor
+	$(GO) mod tidy
 
 api/judge/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
-	protoc -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
+	$(PROTOC) -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
 
 coverage.out: pkg/**/*.go
 	$(GO) test -coverprofile=coverage.out ./pkg/...
@@ -35,8 +48,8 @@ gofmt:
 
 .PHONY: clean
 clean:
-	rm bin/judgeserver
-	rm bin/judgectl
 	rm coverage.out
 	rm -rf vendor
+	rm -rf priv
+	rm -rf bin
 	rm api/judge/v1alpha1/*.pb.go
