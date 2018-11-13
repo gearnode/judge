@@ -31,7 +31,6 @@ priv/server.crt: bin/mkcert priv
 go.sum: go.mod
 	$(GO) get
 	$(GO) mod vendor
-	$(GO) mod tidy
 
 api/judge/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
 	$(PROTOC) -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
