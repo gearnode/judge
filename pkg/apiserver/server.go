@@ -105,11 +105,20 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	log.Info("Receive CreatePolicy Request to execute")
 
 	res := v1alpha1.Policy{}
+
 	pol, err := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
 	if err != nil {
 		return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	if in.GetOrn() != "" {
+		var id orn.ORN
+		err := orn.Unmarshal(in.GetOrn(), &id)
+		if err != nil {
+			return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
+		}
+		pol.ORN = id
+	}
 	res.Orn = orn.Marshal(&pol.ORN)
 	res.Name = pol.Name
 	res.Description = pol.Description
@@ -158,6 +167,15 @@ func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequ
 	pol, err := policy.NewPolicy(in.GetPolicy().GetName(), in.GetPolicy().GetDescription())
 	if err != nil {
 		return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if in.GetPolicy().GetOrn() != "" {
+		var id orn.ORN
+		err := orn.Unmarshal(in.GetPolicy().GetOrn(), &id)
+		if err != nil {
+			return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
+		}
+		pol.ORN = id
 	}
 
 	res.Orn = orn.Marshal(&pol.ORN)
