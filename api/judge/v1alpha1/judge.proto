@@ -73,7 +73,7 @@ message CreatePolicyRequest {
   // Optional. If not specified, an ID will be assigned by the service.
   string orn = 1;
 
-  // The policy to create. `orn` must not be set.
+  // The policy to create.
   Policy policy = 2;
 }
 
