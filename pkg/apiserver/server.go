@@ -18,6 +18,7 @@ package apiserver // import "github.com/gearnode/judge/pkg/apiserver"
 
 import (
 	"github.com/gearnode/judge/api/judge/v1alpha1"
+	"github.com/gearnode/judge/pkg/authorize"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
 	"github.com/gearnode/judge/pkg/policy/resource"
@@ -47,13 +48,50 @@ var (
 // Authorize implement judge.api.v1alpha1.Judge.Authorize
 func (s *Server) Authorize(ctx context.Context, in *v1alpha1.AuthorizeRequest) (*v1alpha1.AuthorizeResponse, error) {
 	log.Info("Receive Authorize Request to execute")
+
+	something := orn.ORN{}
+	orn.Unmarshal(in.GetSomething(), &something)
+	_, err := authorize.Authorize(store, orn.ORN{}, in.GetWhat(), something, in.GetContext())
+
+	if err != nil {
+		return &v1alpha1.AuthorizeResponse{}, status.Error(codes.InvalidArgument, err.Error())
+	}
 	return &v1alpha1.AuthorizeResponse{}, nil
 }
 
 // GetPolicy implement judge.api.v1alpha1.Judge.GetPolicy
 func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (*v1alpha1.Policy, error) {
 	log.Info("Receive GetPolicy Request to execute")
-	return &v1alpha1.Policy{}, nil
+
+	data, err := store.Describe("policies", in.GetOrn())
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.NotFound, "the policy with the orn "+in.GetOrn()+" is not found")
+	}
+
+	pol := data.(policy.Policy)
+
+	res := v1alpha1.Policy{
+		Orn:         orn.Marshal(&pol.ORN),
+		Name:        pol.Name,
+		Description: pol.Description,
+		Document: &v1alpha1.Document{
+			Version:    "v1alpha1",
+			Statements: make([]*v1alpha1.Statement, len(pol.Document.Statement)),
+		},
+	}
+
+	for i, v := range pol.Document.Statement {
+
+		stm := v1alpha1.Statement{Effect: v.Effect, Actions: v.Action}
+
+		for _, v := range v.Resource {
+			r := resource.Marshal(&v)
+			stm.Resources = append(stm.Resources, r)
+		}
+		res.Document.Statements[i] = &stm
+	}
+
+	return &res, nil
 }
 
 // ListPolicies implement judge.api.vbeta1.Judge.ListPolicies
@@ -88,7 +126,7 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}
 
-	store.Put("policies", res.Orn, pol)
+	store.Put("policies", res.Orn, *pol)
 
 	statements := make([]*v1alpha1.Statement, len(pol.Document.Statement))
 	for i, v := range pol.Document.Statement {
