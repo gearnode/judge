@@ -90,8 +90,8 @@ message DeletePolicyRequest {
 }
 
 message AuthorizeRequest {
-  string action = 1;
-  string object = 2;
+  string something = 1;
+  string what = 2;
   map<string, string> context = 3;
 }
 
