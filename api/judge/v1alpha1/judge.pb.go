@@ -175,7 +175,7 @@ type CreatePolicyRequest struct {
 	//
 	// Optional. If not specified, an ID will be assigned by the service.
 	Orn string `protobuf:"bytes,1,opt,name=orn,proto3" json:"orn,omitempty"`
-	// The policy to create. `orn` must not be set.
+	// The policy to create.
 	Policy               *Policy  `protobuf:"bytes,2,opt,name=policy,proto3" json:"policy,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
