@@ -2,6 +2,7 @@ module github.com/gearnode/judge
 
 require (
 	github.com/FiloSottile/mkcert v1.1.2 // indirect
+	github.com/boltdb/bolt v1.3.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/protobuf v1.1.0
 	github.com/gosimple/slug v1.2.0
