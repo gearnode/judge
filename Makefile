@@ -5,7 +5,10 @@ PROTOC = protoc
 .TARGET: all
 
 .PHONY: all
-all: go.sum api/judge/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt
+all: go.sum pkg/apiserver/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt
+
+.PHONY: build
+build: bin/judgeserver bin/judgectl
 
 bin:
 	mkdir -p bin
@@ -32,7 +35,7 @@ go.sum: go.mod
 	$(GO) get
 	$(GO) mod vendor
 
-api/judge/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
+pkg/apiserver/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
 	$(PROTOC) -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
 
 coverage.out: pkg/**/*.go
