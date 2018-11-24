@@ -85,6 +85,11 @@ export GO111MODULE=on
 ```
 
 
+Start judge server:
+```
+bin/judgeserver -tls-crt priv/server.crt -tls-key priv/server.key -tls
+```
+
 **TODO:**
 - [ ] running make clean and make result on a mistake with the dependencies (delete or added without any reasons...)
 
