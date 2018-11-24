@@ -22,13 +22,16 @@ import (
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
 	"github.com/gearnode/judge/pkg/policy/resource"
+	"github.com/gearnode/judge/pkg/storage"
 	"github.com/gearnode/judge/pkg/storage/memory"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
 // Server represent a server instance. This struct store the
@@ -68,7 +71,19 @@ func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (
 		return &v1alpha1.Policy{}, status.Error(codes.NotFound, "the policy with the orn "+in.GetOrn()+" is not found")
 	}
 
-	pol := data.(policy.Policy)
+	pol := data.(storage.Record).Record.(policy.Policy)
+
+	createTime, err := ptypes.TimestampProto(data.(storage.Record).CreateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
+
+	updateTime, err := ptypes.TimestampProto(data.(storage.Record).UpdateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
 
 	res := v1alpha1.Policy{
 		Orn:         orn.Marshal(&pol.ORN),
@@ -78,6 +93,8 @@ func (s *Server) GetPolicy(ctx context.Context, in *v1alpha1.GetPolicyRequest) (
 			Version:    "v1alpha1",
 			Statements: make([]*v1alpha1.Statement, len(pol.Document.Statement)),
 		},
+		CreateTime: createTime,
+		UpdateTime: updateTime,
 	}
 
 	for i, v := range pol.Document.Statement {
@@ -135,7 +152,13 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}
 
-	store.Put("policies", res.Orn, *pol)
+	record := storage.Record{
+		UpdateTime: time.Now(),
+		CreateTime: time.Now(),
+		Record:     *pol,
+	}
+
+	store.Put("policies", res.Orn, record)
 
 	statements := make([]*v1alpha1.Statement, len(pol.Document.Statement))
 	for i, v := range pol.Document.Statement {
@@ -155,6 +178,21 @@ func (s *Server) CreatePolicy(ctx context.Context, in *v1alpha1.CreatePolicyRequ
 	}
 
 	res.Document = &doc
+
+	createTime, err := ptypes.TimestampProto(record.CreateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
+
+	updateTime, err := ptypes.TimestampProto(record.UpdateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
+
+	res.CreateTime = createTime
+	res.UpdateTime = updateTime
 
 	return &res, nil
 }
@@ -169,6 +207,8 @@ func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequ
 		return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	var createTime time.Time
+
 	if in.GetPolicy().GetOrn() != "" {
 		var id orn.ORN
 		err := orn.Unmarshal(in.GetPolicy().GetOrn(), &id)
@@ -176,6 +216,13 @@ func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequ
 			return &v1alpha1.Policy{}, status.Error(codes.InvalidArgument, err.Error())
 		}
 		pol.ORN = id
+
+		old, err := store.Describe("policies", in.GetPolicy().GetOrn())
+		if err == nil {
+			createTime = old.(storage.Record).CreateTime
+		} else {
+			createTime = time.Now()
+		}
 	}
 
 	res.Orn = orn.Marshal(&pol.ORN)
@@ -190,7 +237,13 @@ func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequ
 		pol.Document.Statement = append(pol.Document.Statement, *stm)
 	}
 
-	store.Put("policies", res.Orn, *pol)
+	record := storage.Record{
+		CreateTime: createTime,
+		UpdateTime: time.Now(),
+		Record:     *pol,
+	}
+
+	store.Put("policies", res.Orn, record)
 
 	statements := make([]*v1alpha1.Statement, len(pol.Document.Statement))
 	for i, v := range pol.Document.Statement {
@@ -210,6 +263,21 @@ func (s *Server) UpdatePolicy(ctx context.Context, in *v1alpha1.UpdatePolicyRequ
 	}
 
 	res.Document = &doc
+
+	createTimeP, err := ptypes.TimestampProto(record.CreateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
+
+	updateTime, err := ptypes.TimestampProto(record.UpdateTime)
+
+	if err != nil {
+		return &v1alpha1.Policy{}, status.Error(codes.DataLoss, "")
+	}
+
+	res.CreateTime = createTimeP
+	res.UpdateTime = updateTime
 
 	return &res, nil
 }

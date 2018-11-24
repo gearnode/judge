@@ -16,10 +16,14 @@ limitations under the License.
 
 package storage
 
-// DB represents the database generic interface.
-type DB interface {
-	DescribeAll(table string) ([]interface{}, error)
-	Describe(table string, id string) (interface{}, error)
-	Put(table string, id string, object interface{}) error
-	Delete(table string, id string) error
+import (
+	"time"
+)
+
+// Record represent a stored object. This struct wrap default metadata
+// like create_time or update_time.
+type Record struct {
+	CreateTime time.Time
+	UpdateTime time.Time
+	Record     interface{}
 }
