@@ -3,6 +3,7 @@
 > Simple distributed access management
 
 [![Build Status][travis-image]][travis-url]
+![Docker Build Status](https://img.shields.io/docker/build/gearnode/judge.svg)
 
 Judge is an "access management service" inspired by the AWS IAM Service.
 
