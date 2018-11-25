@@ -56,11 +56,12 @@ func TestCreatePolicy(t *testing.T) {
 	var err error
 	var pol *v1alpha1.Policy
 
-	// When name is missing (when no ORN was provide name is used to generate the ORN).
+	// When policy have an empty name.
 	_, err = srv.CreatePolicy(context.Background(), &v1alpha1.CreatePolicyRequest{})
 	assert.NotNil(t, err)
 	assert.Equal(t, invalidArgumentError, err)
 
+	// When the create policy request is valid (when no ORN was provide the name is used to generate the ORN).
 	pol, err = srv.CreatePolicy(context.Background(), &createPolicyRequest)
 	assert.Nil(t, err)
 	assert.Equal(t, "orn:judge-org:judge-server::policy/demo-policy", pol.Orn)
@@ -71,11 +72,11 @@ func TestCreatePolicy(t *testing.T) {
 	assert.Equal(t, pol.Document.Statements[0].Effect, "Allow")
 	assert.Equal(t, pol.Document.Statements[0].Actions, []string{"listUser", "showUser"})
 	assert.Equal(t, pol.Document.Statements[0].Resources, []string{"orn:judgetest:judge::user/*"})
-
 	assert.Equal(t, pol.Document.Statements[1].Effect, "Allow")
 	assert.Equal(t, pol.Document.Statements[1].Actions, []string{"editUser", "deleteUser"})
 	assert.Equal(t, pol.Document.Statements[1].Resources, []string{"orn:judgetest:judge::user/1"})
 
+	// When the create policy request is valid and set manualy the orn.
 	createPolicyRequest.Orn = "orn:judgetest:judge::super-policy/super-policy-policy"
 	pol, err = srv.CreatePolicy(context.Background(), &createPolicyRequest)
 	assert.Nil(t, err)
@@ -88,7 +89,6 @@ func TestCreatePolicy(t *testing.T) {
 	assert.Equal(t, pol.Document.Statements[0].Effect, "Allow")
 	assert.Equal(t, pol.Document.Statements[0].Actions, []string{"listUser", "showUser"})
 	assert.Equal(t, pol.Document.Statements[0].Resources, []string{"orn:judgetest:judge::user/*"})
-
 	assert.Equal(t, pol.Document.Statements[1].Effect, "Allow")
 	assert.Equal(t, pol.Document.Statements[1].Actions, []string{"editUser", "deleteUser"})
 	assert.Equal(t, pol.Document.Statements[1].Resources, []string{"orn:judgetest:judge::user/1"})
