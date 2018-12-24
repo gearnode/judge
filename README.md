@@ -106,7 +106,16 @@ bin/judgeserver -tls-crt priv/server.crt -tls-key priv/server.key -tls
 
 - judgectl
     - Define CLI interface
-    - Policy support :wq
+    - Policy support
+
+- subject management
+    - add / update / remove subject
+    - link policy to subject
+
+- groups management
+    - add / update remove group
+    - link subject with group
+    - link policy to group
 
 
 ### v1alpha1
