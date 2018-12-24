@@ -1,11 +1,16 @@
 GO = go
 GOFMT = gofmt
 PROTOC = protoc
+DOCKER_NAME = gearnode/judge
+VERSION = v1alpha1
 
 .TARGET: all
 
 .PHONY: all
-all: go.sum api/judge/v1alpha1/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt
+all: go.sum pkg/apiserver/$(VERSION)/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt docker-build
+
+.PHONY: build
+build: bin/judgeserver bin/judgectl
 
 bin:
 	mkdir -p bin
@@ -32,8 +37,8 @@ go.sum: go.mod
 	$(GO) get
 	$(GO) mod vendor
 
-api/judge/v1alpha1/%.pb.go: api/judge/v1alpha1/*.proto
-	$(PROTOC) -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/v1alpha1/*.proto
+pkg/apiserver/$(VERSION)/%.pb.go: api/judge/$(VERSION)/*.proto
+	$(PROTOC) -I. --go_out=plugins=grpc:$(GOPATH)/src api/judge/$(VERSION)/*.proto
 
 coverage.out: pkg/**/*.go
 	$(GO) test -coverprofile=coverage.out ./pkg/...
@@ -47,8 +52,11 @@ gofmt:
 
 .PHONY: clean
 clean:
-	rm coverage.out
+	rm -rf coverage.out
 	rm -rf vendor
 	rm -rf priv
 	rm -rf bin
-	rm api/judge/v1alpha1/*.pb.go
+
+.PHONY: docker-build
+docker-build:
+	docker build . -t $(DOCKER_NAME):$(VERSION)

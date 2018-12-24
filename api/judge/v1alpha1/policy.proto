@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package judge.api.v1alpha1;
 
-option go_package = "github.com/gearnode/judge/api/judge/v1alpha1";
+option go_package = "github.com/gearnode/judge/pkg/apiserver/v1alpha1";
 
 import "google/protobuf/timestamp.proto";
 

@@ -17,7 +17,7 @@ limitations under the License.
 package apiserver // import "github.com/gearnode/judge/pkg/apiserver"
 
 import (
-	"github.com/gearnode/judge/api/judge/v1alpha1"
+	"github.com/gearnode/judge/pkg/apiserver/v1alpha1"
 	"github.com/gearnode/judge/pkg/authorize"
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"

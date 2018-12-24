@@ -3,6 +3,7 @@
 > Simple distributed access management
 
 [![Build Status][travis-image]][travis-url]
+![Docker Build Status](https://img.shields.io/docker/build/gearnode/judge.svg)
 
 Judge is an "access management service" inspired by the AWS IAM Service.
 
@@ -85,10 +86,46 @@ export GO111MODULE=on
 ```
 
 
+Start judge server:
+```
+bin/judgeserver -tls-crt priv/server.crt -tls-key priv/server.key -tls
+```
+
 **TODO:**
 - [ ] running make clean and make result on a mistake with the dependencies (delete or added without any reasons...)
 
 ## Roadmap
+
+### v1alpha2
+
+- apiserver
+    - Reflection gRPC API support
+    - TLS support
+    - Simple CLI interface
+    - Policy Management (list,show,create,update,delete)
+
+- judgectl
+    - Define CLI interface
+    - Policy support
+
+- subject management
+    - add / update / remove subject
+    - link policy to subject
+
+- groups management
+    - add / update remove group
+    - link subject with group
+    - link policy to group
+
+
+### v1alpha1
+
+- [x] gRPC basic setup
+- [ ] Policy management via gRPC (list,create,delete,update,show)
+- [x] basic storage interface
+- [x] gRPC server configurable
+- [x] alpha authorize rules define
+- [x] alpha orn format define
 
 ## Contributing
 
