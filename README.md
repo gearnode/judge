@@ -96,6 +96,28 @@ bin/judgeserver -tls-crt priv/server.crt -tls-key priv/server.key -tls
 
 ## Roadmap
 
+### v1alpha2
+
+- apiserver
+    - Reflection gRPC API support
+    - TLS support
+    - Simple CLI interface
+    - Policy Management (list,show,create,update,delete)
+
+- judgectl
+    - Define CLI interface
+    - Policy support :wq
+
+
+### v1alpha1
+
+- [x] gRPC basic setup
+- [ ] Policy management via gRPC (list,create,delete,update,show)
+- [x] basic storage interface
+- [x] gRPC server configurable
+- [x] alpha authorize rules define
+- [x] alpha orn format define
+
 ## Contributing
 
 1. Fork it (<https://github.com/gearnode/judge/fork>)
