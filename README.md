@@ -85,6 +85,8 @@ This project use go mod beta feature, so you should set this env var:
 export GO111MODULE=on
 ```
 
+TODO explain make
+
 
 Start judge server:
 ```

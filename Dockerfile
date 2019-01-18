@@ -1,8 +1,10 @@
 FROM golang:1.11-alpine AS builder
 
+ENV GO111MODULE on
+
 WORKDIR /go/src/github.com/gearnode/judge
 
-RUN apk add --no-cache make
+RUN apk add --no-cache make git alpine-sdk
 
 COPY . .
 

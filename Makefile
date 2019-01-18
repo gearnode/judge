@@ -4,13 +4,13 @@ PROTOC = protoc
 DOCKER_NAME = gearnode/judge
 VERSION = v1alpha1
 
-.TARGET: all
+.TARGET = all
 
 .PHONY: all
 all: go.sum pkg/apiserver/$(VERSION)/*.pb.go test bin/judgeserver bin/judgectl priv/server.crt docker-build
 
 .PHONY: build
-build: bin/judgeserver bin/judgectl
+build: vendor bin/judgeserver bin/judgectl
 
 bin:
 	mkdir -p bin
@@ -21,14 +21,10 @@ bin/judgeserver: bin cmd/judgeserver/*.go pkg/**/*.go
 bin/judgectl: bin cmd/judgectl/*go pkg/**/*.go
 	$(GO) build -o bin/judgectl cmd/judgectl/main.go
 
-bin/mkcert:
-	$(GO) get -u github.com/FiloSottile/mkcert
-	ln -fs $(GOPATH)/bin/mkcert bin/mkcert
-
 priv:
 	mkdir -p priv
 
-priv/server.crt: bin/mkcert priv
+priv/server.crt: priv
 	mkcert 127.0.0.1
 	mv ./127.0.0.1.pem ./priv/server.crt
 	mv ./127.0.0.1-key.pem ./priv/server.key
@@ -49,6 +45,10 @@ test: go.sum coverage.out
 .PHONY: gofmt
 gofmt:
 	$(GOFMT) -w -s pkg/ cmd/
+
+.PHONY: vendor
+vendor:
+	$(GO) mod vendor
 
 .PHONY: clean
 clean:
