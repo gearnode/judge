@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package command
-
-func main() {
-}
+// Package memorystore contains an in memory implementation of
+// the Judge storage interface.
+package memorystore // import "github.com/gearnode/judge/pkg/storage/memory"

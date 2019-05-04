@@ -14,15 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
+package apiserver
 
 import (
+	pb "github.com/gearnode/judge/pkg/apiserver/v1alpha1"
 	"github.com/gearnode/judge/pkg/storage"
-	"testing"
+	"google.golang.org/grpc"
 )
 
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
+// Service contains dependencies used by the service and the service implementation.
+type Service struct {
+	state storage.Storage
+}
 
-	storage.StorageTestSuite(t, store)
+// NewService create a new service with a default configuration.
+func NewService(store storage.Storage) *Service {
+	return &Service{state: store}
+}
+
+// Register register the service to an gRPC server.
+func (s *Service) Register(server *grpc.Server) {
+	pb.RegisterJudgeServer(server, s)
 }

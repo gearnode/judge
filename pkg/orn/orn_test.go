@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,51 +22,61 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func DoesUnmarshalORNWithSuccess(t *testing.T) {
+	assert := assert.New(t)
+	expected := ORN{}
+	err := Unmarshal("orn:partition:service:account:resourcetype/resource", &expected)
+
+	assert.NoError(err)
+	assert.Equal(expected.Partition, "partition")
+	assert.Equal(expected.Service, "service")
+	assert.Equal(expected.AccountID, "account")
+	assert.Equal(expected.ResourceType, "resourcetype")
+	assert.Equal(expected.Resource, "resource")
+}
+
+func DoesUnmarshalORNWithMultipleResourceWithSuccess(t *testing.T) {
+	assert := assert.New(t)
+	expected := ORN{}
+	err := Unmarshal("orn:acme:judge:account:user/837/bar", &expected)
+
+	assert.NoError(err)
+	assert.Equal(expected.Partition, "acme")
+	assert.Equal(expected.Service, "judge")
+	assert.Equal(expected.AccountID, "account")
+	assert.Equal(expected.ResourceType, "user")
+	assert.Equal(expected.Resource, "837/bar")
+}
+
+func DoesUnmarshalORNWithoutAccountIDWithSuccess(t *testing.T) {
+	assert := assert.New(t)
+	expected := ORN{}
+	err := Unmarshal("orn:acme:judge::user/837/bar", &expected)
+
+	assert.NoError(err)
+
+	assert.Equal(expected.Partition, "acme")
+	assert.Equal(expected.Service, "judge")
+	assert.Equal(expected.AccountID, "")
+	assert.Equal(expected.ResourceType, "user")
+	assert.Equal(expected.Resource, "837/bar")
+}
+
 func TestUnmarshal(t *testing.T) {
-
-	t.Run("does Unmarshal the ORN successfully", func(t *testing.T) {
-		expected := ORN{}
-		err := Unmarshal("orn:partition:service:account:resourcetype/resource", &expected)
-
-		assert.Nil(t, err)
-
-		assert.Equal(t, expected.Partition, "partition")
-		assert.Equal(t, expected.Service, "service")
-		assert.Equal(t, expected.AccountID, "account")
-		assert.Equal(t, expected.ResourceType, "resourcetype")
-		assert.Equal(t, expected.Resource, "resource")
-	})
-
-	t.Run("does Unmarshal the ORN successfully with multiple / in the resource", func(t *testing.T) {
-		expected := ORN{}
-		err := Unmarshal("orn:acme:judge:account:user/837/bar", &expected)
-
-		assert.Nil(t, err)
-
-		assert.Equal(t, expected.Partition, "acme")
-		assert.Equal(t, expected.Service, "judge")
-		assert.Equal(t, expected.AccountID, "account")
-		assert.Equal(t, expected.ResourceType, "user")
-		assert.Equal(t, expected.Resource, "837/bar")
-	})
-
-	t.Run("does Unmarshal the ORN successfully without account id", func(t *testing.T) {
-		expected := ORN{}
-		err := Unmarshal("orn:acme:judge::user/837/bar", &expected)
-
-		assert.Nil(t, err)
-
-		assert.Equal(t, expected.Partition, "acme")
-		assert.Equal(t, expected.Service, "judge")
-		assert.Equal(t, expected.AccountID, "")
-		assert.Equal(t, expected.ResourceType, "user")
-		assert.Equal(t, expected.Resource, "837/bar")
-	})
+	DoesUnmarshalORNWithSuccess(t)
+	DoesUnmarshalORNWithMultipleResourceWithSuccess(t)
+	DoesUnmarshalORNWithoutAccountIDWithSuccess(t)
 }
 
 func TestMarshal(t *testing.T) {
-	o := ORN{Partition: "foo", Service: "bar", AccountID: "baz", ResourceType: "biz", Resource: "fiz"}
-	expected := Marshal(&o)
+	assert := assert.New(t)
+	id := ORN{Partition: "foo", Service: "bar", AccountID: "baz", ResourceType: "biz", Resource: "fiz"}
+	expected := Marshal(&id)
+	assert.Equal(expected, "orn:foo:bar:baz:biz/fiz")
+}
 
-	assert.Equal(t, expected, "orn:foo:bar:baz:biz/fiz")
+func TestString(t *testing.T) {
+	assert := assert.New(t)
+	id := ORN{Partition: "foo", Service: "bar", AccountID: "baz", ResourceType: "biz", Resource: "fiz"}
+	assert.Equal(id.String(), "orn:foo:bar:baz:biz/fiz")
 }

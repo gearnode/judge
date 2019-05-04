@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package storage contains code for storages (like the redis
-// storage).
-package storage // import "github.com/gearnode/judge/pkg/storage"
+package storage
 
-// DB represents the database generic interface.
-type DB interface {
-	DescribeAll(table string) ([]interface{}, error)
-	Describe(table string, id string) (interface{}, error)
-	Put(table string, id string, object interface{}) error
-	Delete(table string, id string) error
+import (
+	"github.com/gearnode/judge/pkg/policy"
+)
+
+// ScrollOptions contains pagination and order options for scroll.
+type ScrollOptions struct {
+	PageToken string
+	PageSize  int
+	OrderBy   *ScrollOrderOptions
+}
+
+// ScrollOrderOptions contains order options for scroll.
+type ScrollOrderOptions struct {
+	Column string
+	Order  string
+}
+
+// Storage define storage interface without any implementation.
+type Storage interface {
+	GetPolicy(id string) (*policy.Policy, error)
+	PutPolicy(pol *policy.Policy) (*policy.Policy, error)
+	DelPolicy(id string) error
+	ScrollPolicy(opts *ScrollOptions) ([]*policy.Policy, string, error)
 }

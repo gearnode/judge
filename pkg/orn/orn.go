@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package orn represents ORN data structure in Go types.
-package orn // import "github.com/gearnode/judge/pkg/orn"
+package orn
 
 import (
 	"errors"
@@ -42,6 +41,12 @@ type ORN struct {
 	Resource string
 }
 
+// String marshal the ORN object. This function is a shortcut to the Marshal function
+// to improve code readability.
+func (o *ORN) String() string {
+	return Marshal(o)
+}
+
 const (
 	// FirstPart represent the first part of an unmarshal ORN.
 	FirstPart = "orn"
@@ -61,10 +66,12 @@ const (
 
 var (
 	// ErrMalformed is returned when the ORN appears to be invalid.
-	ErrMalformed = errors.New("malformed ORN")
+	ErrMalformed = errors.New("malformed object resource name, see specification: https://github.com/gearnode/judge/blob/master/pkg/orn/README.md")
 )
 
-// Unmarshal accepts an ORN string and attempts to split it into constiuent parts.
+// Unmarshal decode an marshaled object resource name and returns an error when the
+// object resource name is malformed or when the object resource name is valid an struct
+// that represent the object resource name in Go.
 func Unmarshal(data string, orn *ORN) error {
 	parts := strings.Split(data, PartSep)
 	if len(parts) != PartSize {
@@ -99,8 +106,10 @@ func Unmarshal(data string, orn *ORN) error {
 	return nil
 }
 
-// Marshal accepts an ORN Struct and attempts to join it into constiuent parts.
+// Marshal returns an marshaled object resource name and perform check to ensure
+// the object resource name is valid. So you can marshal invalid object resource name.
 func Marshal(orn *ORN) string {
+	// TODO: @gearnode Decide if this function should ensure the object resource name is valid before marshal it.
 	return fmt.Sprintf(
 		"orn:%s:%s:%s:%s/%s",
 		orn.Partition,

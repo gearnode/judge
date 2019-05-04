@@ -14,15 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
+package apiserver
 
 import (
-	"github.com/gearnode/judge/pkg/storage"
-	"testing"
+	"context"
+	pb "github.com/gearnode/judge/pkg/apiserver/v1alpha1"
 )
 
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
-
-	storage.StorageTestSuite(t, store)
+func (s *Service) ListPolicies(ctx context.Context, in *pb.ListPoliciesRequest) (*pb.ListPoliciesResponse, error) {
+	return &pb.ListPoliciesResponse{}, nil
 }

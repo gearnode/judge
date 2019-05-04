@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin,
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package authorize implement the policy evalution.
-package authorize // import "github.com/gearnode/judge/pkg/authorize"
+package authorize
 
 import (
 	"errors"
-
 	"github.com/gearnode/judge/pkg/orn"
 	"github.com/gearnode/judge/pkg/policy"
-	"github.com/gearnode/judge/pkg/storage"
 )
 
 const (
@@ -47,49 +44,52 @@ var (
 // The order in which the policies are evaluated has no effect on the outcome
 // of the evaluation. All policies are evaluated, and the result is always
 // that the request is either allowed or denied.
-func Authorize(s storage.DB, who orn.ORN, what string, something orn.ORN, context map[string]string) (bool, error) {
-	// TODO: remove storage dependencies
+func Authorize(policies []*policy.Policy, action string, object orn.ORN, _context map[string]string) error {
+	finalEffect := denyAction // By default deny
 
-	defaultEffect := denyAction
+	for _, policy := range policies {
+		for _, statement := range policy.Statements {
 
-	pols, err := s.DescribeAll("policies")
-	if err != nil {
-		return false, err
-	}
+			// TODO: @gearnode Add context support when policy object support condition
+			//                 The context should be evaluate at the last check to avoid
+			//                 long evaluation on not matching statement.
+			currentEffect := evalStatement(statement, object, action)
 
-	for _, data := range pols {
-		pol := data.(policy.Policy)
-		for _, stmt := range pol.Document.Statement {
-			effect := evalStme(&stmt, &something, &what)
+			// Explicit deny (stop the evaluation)
+			// No allow can override an deny action.
+			if currentEffect == denyAction {
+				return ErrAccessDenied
+			}
 
-			if effect == denyAction { // Explicit deny
-				return false, ErrAccessDenied
-			} else if effect == allowAction { // Explicit allow
-				defaultEffect = allowAction
+			// Explicit allow (modify the result effect and don't break the evaluation).
+			// Next statement can deny this statement allow.
+			if currentEffect == allowAction {
+				finalEffect = allowAction
 			}
 		}
 	}
 
-	if defaultEffect == allowAction {
-		return true, nil
+	if finalEffect == allowAction {
+		return nil
 	}
-	return false, ErrAccessDenied
+
+	return ErrAccessDenied
 }
 
-func evalStme(stmt *policy.Statement, something *orn.ORN, what *string) string {
-	if matchAction(stmt.Action, *what) {
-		for _, resource := range stmt.Resource {
-			if resource.Match(something) {
-				return stmt.Effect
+func evalStatement(statement policy.Statement, object orn.ORN, action string) string {
+	if matchAction(statement.Actions, action) {
+		for _, resource := range statement.Resources {
+			if resource.Match(&object) {
+				return statement.Effect
 			}
 		}
 	}
 	return notMatch
 }
 
-func matchAction(actions []string, what string) bool {
-	for _, action := range actions {
-		if action == what {
+func matchAction(actions []string, action string) bool {
+	for i := range actions {
+		if actions[i] == action {
 			return true
 		}
 	}

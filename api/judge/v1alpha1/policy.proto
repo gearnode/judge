@@ -1,4 +1,4 @@
-// Copyright 2018 The Judge Authors.
+// Copyright 2019 Bryan Frimin.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,18 +22,22 @@ import "google/protobuf/timestamp.proto";
 
 // A Judge policy.
 message Policy {
-  // The object resource name of the document, for example
+  // Output only. The object resource name of the document, for example
   // `orn:judge-org:judge-service::policy/default_policy`.
-  string orn = 1;
+  string policy_id = 1;
 
   // Name element specifies a user friendly name for the policy.
   string name = 2;
 
   // Description element specifies description/usage about the policy.
+  //
+  // Optional.
   string description = 3;
 
-  // Document contains all statements for the policy.
-  Document document = 4;
+  // Statement contains a list of Statement.
+  //
+  // Optional.
+  repeated Statement statements = 4;
 
   // Output only. The time at which the policy was created.
   google.protobuf.Timestamp create_time = 5;
@@ -46,21 +50,17 @@ message Policy {
 
 }
 
-// An Document.
-message Document {
-  // Version is the Statement version.
-  string version = 1;
-
-  // Statement contains a list of Statement.
-  repeated Statement statements = 2;
-}
-
 // An Statement.
 message Statement {
+  enum Effect {
+    ALLOW = 0;
+    DENY = 1;
+  }
+
   // The Effect element is required and specifies whether the statement
   // results in an allow or an explicit deny. Valid values for Effect are
   // Allow and Deny.
-  string effect = 1;
+  Effect effect = 1;
 
   // The Action element describes the specific action or actions that will
   // be allowed or denied.
@@ -69,4 +69,7 @@ message Statement {
   // The Resource element specifies the object or objects that the statement
   // covers.
   repeated string resources = 3;
+
+  // The Conditions element contains definition of conditions to execute.
+  repeated string conditions = 4;
 }

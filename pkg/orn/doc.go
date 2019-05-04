@@ -14,15 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
-
-import (
-	"github.com/gearnode/judge/pkg/storage"
-	"testing"
-)
-
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
-
-	storage.StorageTestSuite(t, store)
-}
+// Package orn implement the Object Resource Name specification.
+// Specification can found here: https://github.com/gearnode/judge/blob/master/pkg/orn/README.md
+package orn // import "github.com/gearnode/judge/pkg/orn"

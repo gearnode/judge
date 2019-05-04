@@ -1,5 +1,5 @@
 /*
-Copyright 2019 Bryan Frimin.
+Copyright 2019 The Judge Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
-
-import (
-	"github.com/gearnode/judge/pkg/storage"
-	"testing"
-)
-
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
-
-	storage.StorageTestSuite(t, store)
-}
+package apiserver // import "github.com/gearnode/judge/pkg/apiserver/v1alpha1/impl"
