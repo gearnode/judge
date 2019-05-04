@@ -96,7 +96,8 @@ func containsOnlyPermitedChar(s string) bool {
 	return true
 }
 
-// Resource foo
+// TODO: @gearnode use alias type here instead of type definition
+//       Resource type is a superset of ORN
 type Resource orn.ORN
 
 // Match

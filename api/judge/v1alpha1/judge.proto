@@ -1,4 +1,4 @@
-// Copyright 2018 The Judge Authors.
+// Copyright 2019 Bryan Frimin.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,32 +20,49 @@ option go_package = "github.com/gearnode/judge/pkg/apiserver/v1alpha1";
 
 import "api/judge/v1alpha1/policy.proto";
 import "google/protobuf/empty.proto";
-
-// Specification of the Judge API.
+import "google/api/annotations.proto";
 
 // The Judge service.
 service Judge {
   // Gets a single policy.
-  rpc GetPolicy(GetPolicyRequest) returns (Policy) {}
+  rpc GetPolicy(GetPolicyRequest) returns (Policy) {
+    option(google.api.http) = {
+      get: "/v1alpha1/policies/{policy_id}"
+    };
+  }
 
   // Lists policies.
   rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {}
 
   // Creates a new policy.
-  rpc CreatePolicy(CreatePolicyRequest) returns (Policy) {}
+  rpc CreatePolicy(CreatePolicyRequest) returns (Policy) {
+    option(google.api.http) = {
+      post: "/v1alpha1/policies"
+      body: "*"
+    };
+  }
 
   // Updates or inserts a policy.
-  rpc UpdatePolicy(UpdatePolicyRequest) returns (Policy) {}
+  rpc UpdatePolicy(UpdatePolicyRequest) returns (Policy) {
+    option(google.api.http) = {
+      put: "/v1alpha1/policies/{policy_id}"
+      body: "policy"
+    };
+  }
 
   // Deletes a policy.
-  rpc DeletePolicy(DeletePolicyRequest) returns (google.protobuf.Empty) {}
+  rpc DeletePolicy(DeletePolicyRequest) returns (google.protobuf.Empty) {
+    option(google.api.http) = {
+      delete: "/v1alpha1/policies/{policy_id}"
+    };
+  }
 
   rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {}
 }
 
 message GetPolicyRequest {
   // The orn of the policy to retrieve.
-  string orn = 1;
+  string policy_id = 1;
 }
 
 message ListPoliciesRequest {
@@ -71,7 +88,7 @@ message CreatePolicyRequest {
   // The client-assigned policy object resource name to use for this document.
   //
   // Optional. If not specified, an ID will be assigned by the service.
-  string orn = 1;
+  string policy_id = 1;
 
   // The policy to create.
   Policy policy = 2;
@@ -86,14 +103,16 @@ message UpdatePolicyRequest {
 message DeletePolicyRequest {
   // The object resource name of the Policy to delete. In the format:
   // `orn:judge-org:judge-service::policy/default_policy`.
-  string orn = 1;
+  string policy_id = 1;
 }
 
 message AuthorizeRequest {
-  string something = 1;
-  string what = 2;
+  string object = 1;
+  string action = 2;
   map<string, string> context = 3;
 }
 
 message AuthorizeResponse {
+  bool authorized = 1;
+  string explain = 2;
 }

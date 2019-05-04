@@ -4,6 +4,8 @@ PROTOC = protoc
 DOCKER_NAME = gearnode/judge
 VERSION = v1alpha1
 
+export GO111MODULE=on
+
 .TARGET = all
 
 .PHONY: all

@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package policy // import "github.com/gearnode/judge/pkg/policy"
+package policy
 
 import (
 	"errors"
@@ -29,8 +29,8 @@ import (
 // a user, makes a request. Permissions in the policies determine whether the
 // request is allowed or denied.
 type Policy struct {
-	// ORN element specifies a global unique identifier for the policy.
-	ORN orn.ORN `json:"orn"`
+	// ID element specifies a global unique identifier for the policy.
+	ID orn.ORN `json:"orn"`
 
 	// Name element specifies a user friendly name for the policy.
 	Name string `json:"name"`
@@ -38,44 +38,30 @@ type Policy struct {
 	// Description element specifies description/usage about the policy.
 	Description string `json:"description"`
 
-	// Type element specifies the type for the policy.
-	Type string `json:"type"`
-
-	// Document contains all statements for the policy.
-	Document Document `json:"document"`
-}
-
-// Document contains statements and version of these statements.
-type Document struct {
-	// Version is the Statement version.
-	Version string `json:"version"`
-
-	// Statement contains a list of Statement.
-	Statement []Statement `json:"statement"`
+	// Statements contains a list of Statement.
+	Statements []Statement `json:"statement"`
 }
 
 // The Statement element is the main element for a policy. It defines
 // permissions.
 type Statement struct {
-	// The Effect element is required and specifies whether the statement
+	// Effect element is required and specifies whether the statement
 	// results in an allow or an explicit deny. Valid values for Effect are
 	// Allow and Deny.
 	Effect string `json:"effect"`
 
-	// The Action element describes the specific action or actions that will
+	// Actions element describes the specific action or actions that will
 	// be allowed or denied.
-	Action []string `json:"action"`
+	Actions []string `json:"action"`
 
-	// The Resource element specifies the object or objects that the statement
+	// Resources element specifies the object or objects that the statement
 	// covers.
-	Resource []resource.Resource `json:"resource"`
+	Resources []resource.Resource `json:"resource"`
 }
 
 const (
-	PARTITION  = "judge-org"
-	SERVICE    = "judge-server"
-	STANDALONE = "STANDALONE"
-	VERSION    = "v1alpha1"
+	PARTITION = "judge-org"
+	SERVICE   = "judge-server"
 )
 
 var (
@@ -86,58 +72,50 @@ var (
 // NewPolicy create a new policy document.
 func NewPolicy(name string, description string) (*Policy, error) {
 	if name == "" {
-		return &Policy{}, errors.New("the policy object require a non empty name")
+		return nil, errors.New("the policy object require a non empty name")
 	}
 
 	return &Policy{
-		ORN: orn.ORN{
+		ID: orn.ORN{
 			Partition: PARTITION, Service: SERVICE,
 			ResourceType: "policy", Resource: slug.Make(name),
 		},
 		Name:        name,
 		Description: description,
-		Type:        STANDALONE,
-		Document: Document{
-			Version: VERSION,
-		},
 	}, nil
 }
 
 func NewStatement(effect string, actions []string, resources []string) (*Statement, error) {
-	if effect != "Allow" && effect != "Deny" {
-		return &Statement{}, fmt.Errorf("the effect %s is not supported."+
-			" Supported effects are \"Allow\" or \"Deny\"", effect)
+	if effect != "ALLOW" && effect != "DENY" {
+		return nil, fmt.Errorf("the effect %q is not supported. Supported effects are %q or %q", "ALLOW", "DENY", effect)
 	}
 
 	if len(resources) == 0 {
-		return &Statement{}, errors.New("the statement object require at least" +
-			" one resource")
+		return nil, errors.New("the statement object require at least one resource")
 	}
 
 	if len(actions) == 0 {
-		return &Statement{}, errors.New("the statement object require at least" +
-			" one action")
+		return nil, errors.New("the statement object require at least one action")
 	}
 
 	for _, action := range actions {
 		if action == "" {
-			return &Statement{}, errors.New("the statement object does not support" +
-				" empty action")
+			return nil, errors.New("the statement object does not support empty action")
 		}
 	}
 
-	stmt := Statement{
-		Effect:   effect,
-		Action:   actions,
-		Resource: make([]resource.Resource, len(resources)),
+	statement := Statement{
+		Effect:    effect,
+		Actions:   actions,
+		Resources: make([]resource.Resource, len(resources)),
 	}
 
-	for i, rsrc := range resources {
-		err := resource.Unmarshal(rsrc, &stmt.Resource[i])
+	for i := range resources {
+		err := resource.Unmarshal(resources[i], &statement.Resources[i])
 		if err != nil {
-			return &Statement{}, err
+			return nil, err
 		}
 	}
 
-	return &stmt, nil
+	return &statement, nil
 }

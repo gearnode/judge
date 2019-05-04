@@ -14,15 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
+package redisstore
 
 import (
 	"github.com/gearnode/judge/pkg/storage"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
+func TestStorage(t *testing.T) {
+	assert := assert.New(t)
+
+	store, err := NewRedisStore(&Options{
+		Addr:     "localhost:8347",
+		Password: "",
+		DB:       0,
+	})
+
+	assert.Error(err)
+
+	store, err = NewRedisStore(&Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	assert.NoError(err)
 
 	storage.StorageTestSuite(t, store)
 }

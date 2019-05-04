@@ -14,15 +14,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package memorystore
-
-import (
-	"github.com/gearnode/judge/pkg/storage"
-	"testing"
-)
-
-func TestStorageTestSuite(t *testing.T) {
-	store := NewMemoryStore()
-
-	storage.StorageTestSuite(t, store)
-}
+package policy // import "github.com/gearnode/judge/pkg/policy"

@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/gearnode/judge/pkg/apiserver"
+	v1alpha1 "github.com/gearnode/judge/pkg/apiserver/v1alpha1/impl"
+	"github.com/gearnode/judge/pkg/storage/memory"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
@@ -62,7 +63,12 @@ func main() {
 	}
 
 	reflection.Register(srv)
-	apiserver.Register(srv)
+	judge := v1alpha1.NewService(memorystore.NewMemoryStore())
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	judge.Register(srv)
 
 	srv.Serve(lis)
 }

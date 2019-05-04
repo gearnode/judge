@@ -67,11 +67,23 @@ TODO: explain storage solution
 
 ## Concepts
 
-- Explain ORN
-- Explain Policy
-- Explain End-User
-- Explain Organization
-- Explain Access Request
+### Object Resource Name (ORN)
+
+Object Resource Name (ORN) uniquely identify resources in your system. The
+Object Resource Name contains many information used by Judge to evaluate the
+authorization.
+
+### Policy
+TODO
+
+### End-User
+TODO
+
+### Organization
+TODO
+
+### Authorization Request
+TODO
 
 
 ## Usage
@@ -80,11 +92,6 @@ TODO: explain storage solution
 
 :warning: this project can only be used in your gopath directory. Generate protos are painful and I can't lose time again.
 
-This project use go mod beta feature, so you should set this env var:
-```
-export GO111MODULE=on
-```
-
 TODO explain make
 
 
@@ -92,9 +99,6 @@ Start judge server:
 ```
 bin/judgeserver -tls-crt priv/server.crt -tls-key priv/server.key -tls
 ```
-
-**TODO:**
-- [ ] running make clean and make result on a mistake with the dependencies (delete or added without any reasons...)
 
 ## Roadmap
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,100 +14,61 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package memorystore contains an in memory implementation of
-// the Judge storage interface.
-package memorystore // import "github.com/gearnode/judge/pkg/storage/memory"
+package memorystore
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
+	"github.com/gearnode/judge/pkg/policy"
 	"github.com/gearnode/judge/pkg/storage"
 )
 
-// MemoryTable foo
-type memoryTable map[string]memoryRow
-
-// MemoryRow foo
-type memoryRow map[string]interface{}
-
-// MemoryStore is a simple in-memory storage using the DB interface.
+// MemoryStore is a simple in-memory storage implementing the Storage interface.
 type MemoryStore struct {
-	data memoryTable
-	mux  sync.RWMutex
-
-	storage.DB
+	mux sync.RWMutex
+	storage.Storage
+	policies map[string]*policy.Policy
 }
 
 // NewMemoryStore create a new memory store
 func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{data: memoryTable{"settings": memoryRow{}}}
+	return &MemoryStore{policies: make(map[string]*policy.Policy)}
 }
 
-// Data return the raw internal memory state.
-func (store *MemoryStore) Data() memoryTable {
-	store.mux.RLock()
-	data := store.data
-	store.mux.RUnlock()
-	return data
+// GetPolicy returns the policy with the given identifier.
+func (s *MemoryStore) GetPolicy(id string) (*policy.Policy, error) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	if s.policies[id] != nil {
+		return s.policies[id], nil
+	}
+
+	return nil, fmt.Errorf("policy with id %q does not exist", id)
 }
 
-// DescribeAll return all element in the given table
-func (store *MemoryStore) DescribeAll(table string) ([]interface{}, error) {
-	store.mux.RLock()
-	partition := store.data[table]
-	store.mux.RUnlock()
-	data := make([]interface{}, len(partition))
+func (s *MemoryStore) PutPolicy(pol *policy.Policy) (*policy.Policy, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
-	if partition == nil {
-		partition = memoryRow{}
-	}
+	s.policies[pol.ID.String()] = pol
 
-	i := 0
-	for _, v := range partition {
-		data[i] = v
-		i++
-	}
-
-	return data, nil
+	return s.policies[pol.ID.String()], nil
 }
 
-// Describe return the elememt with the given ID in the given table
-func (store *MemoryStore) Describe(table string, id string) (interface{}, error) {
-	store.mux.RLock()
-	partition := store.data[table]
-	store.mux.RUnlock()
+func (s *MemoryStore) DelPolicy(id string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
-	if partition == nil {
-		partition = memoryRow{}
+	if s.policies[id] != nil {
+		delete(s.policies, id)
+		return nil
 	}
 
-	elem := partition[id]
-
-	if elem == nil {
-		return nil, errors.New("record not exist")
-	}
-
-	return elem, nil
+	return fmt.Errorf("policy with id %q does not exist", id)
 }
 
-// Put upsert record in the given table
-func (store *MemoryStore) Put(table string, id string, object interface{}) error {
-	store.mux.Lock()
-	partition := store.data[table]
-
-	if partition == nil {
-		partition = memoryRow{}
-	}
-
-	partition[id] = object
-
-	store.data[table] = partition
-	store.mux.Unlock()
-	return nil
-}
-
-// Delete remove an element in the given table
-func (store *MemoryStore) Delete(table string, id string) error {
-	return nil
+func (s *MemoryStore) ScrollPolicy(opts *storage.ScrollOptions) ([]*policy.Policy, string, error) {
+	return []*policy.Policy{}, "", nil
 }

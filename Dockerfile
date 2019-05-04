@@ -14,7 +14,7 @@ FROM alpine:3.8
 
 LABEL org.judge.version="v1alpha1" \
       org.judge.release-date="2018-11-25" \
-      maintainer="Judge Authors"
+      maintainer="Bryan Frimin"
 
 RUN apk add --no-cache ca-certificates
 

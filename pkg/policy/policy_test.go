@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Judge Authors.
+Copyright 2019 Bryan Frimin.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,102 +23,101 @@ import (
 )
 
 func TestNewPolicy(t *testing.T) {
+	assert := assert.New(t)
+
 	pol, err := NewPolicy("some-name", "some description of the policy")
-	assert.Nil(t, err)
-	assert.Equal(t, "some-name", pol.Name)
-	assert.Equal(t, "some description of the policy", pol.Description)
-	assert.Equal(t, STANDALONE, pol.Type)
-	assert.Equal(t, VERSION, pol.Document.Version)
-	assert.Equal(t, "judge-org", pol.ORN.Partition)
-	assert.Equal(t, "judge-server", pol.ORN.Service)
-	assert.Equal(t, "", pol.ORN.AccountID)
-	assert.Equal(t, "policy", pol.ORN.ResourceType)
-	assert.Equal(t, "some-name", pol.ORN.Resource)
+	assert.NoError(err)
+	assert.Equal("some-name", pol.Name)
+	assert.Equal("some description of the policy", pol.Description)
+	assert.Equal("judge-org", pol.ID.Partition)
+	assert.Equal("judge-server", pol.ID.Service)
+	assert.Equal("", pol.ID.AccountID)
+	assert.Equal("policy", pol.ID.ResourceType)
+	assert.Equal("some-name", pol.ID.Resource)
 
 	pol, err = NewPolicy("", "some description of the policy")
-	assert.NotNil(t, err)
-	assert.Equal(t, err, errors.New("the policy object require a non empty name"))
-	assert.Equal(t, pol, &Policy{})
+	assert.Error(err)
+	assert.Equal(err, errors.New("the policy object require a non empty name"))
+	assert.Nil(pol)
 
 	pol, err = NewPolicy("some-name", "")
-	assert.Nil(t, err)
-	assert.Equal(t, "some-name", pol.Name)
-	assert.Equal(t, "", pol.Description)
-	assert.Equal(t, STANDALONE, pol.Type)
-	assert.Equal(t, VERSION, pol.Document.Version)
-	assert.Equal(t, "judge-org", pol.ORN.Partition)
-	assert.Equal(t, "judge-server", pol.ORN.Service)
-	assert.Equal(t, "", pol.ORN.AccountID)
-	assert.Equal(t, "policy", pol.ORN.ResourceType)
-	assert.Equal(t, "some-name", pol.ORN.Resource)
+	assert.NoError(err)
+	assert.Equal("some-name", pol.Name)
+	assert.Equal("", pol.Description)
+	assert.Equal("judge-org", pol.ID.Partition)
+	assert.Equal("judge-server", pol.ID.Service)
+	assert.Equal("", pol.ID.AccountID)
+	assert.Equal("policy", pol.ID.ResourceType)
+	assert.Equal("some-name", pol.ID.Resource)
 }
 
 func TestNewStatement(t *testing.T) {
+	assert := assert.New(t)
 	actions := []string{"edit", "show"}
 	resources := []string{"orn:judge-org:policy-service::foo/bar"}
-	effect := "Allow"
+	effect := "ALLOW"
 
 	t.Run("When the effect is not allowed", func(t *testing.T) {
 		stmt, err := NewStatement("NotAllowed", actions, resources)
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 
 		stmt, err = NewStatement("Allowed", actions, resources)
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 	})
 
 	t.Run("When the effect is allowed", func(t *testing.T) {
-		stmt, err := NewStatement("Allow", actions, resources)
-		assert.Nil(t, err)
-		assert.Equal(t, stmt.Effect, "Allow")
+		stmt, err := NewStatement("ALLOW", actions, resources)
+		assert.NoError(err)
+		assert.Equal(stmt.Effect, "ALLOW")
 
-		stmt, err = NewStatement("Deny", actions, resources)
-		assert.Nil(t, err)
-		assert.Equal(t, stmt.Effect, "Deny")
+		stmt, err = NewStatement("DENY", actions, resources)
+		assert.NoError(err)
+		assert.Equal(stmt.Effect, "DENY")
 	})
 
 	t.Run("When resources is empty", func(t *testing.T) {
 		stmt, err := NewStatement(effect, actions, []string{})
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 	})
 
 	t.Run("When actions is empty", func(t *testing.T) {
 		stmt, err := NewStatement(effect, []string{}, resources)
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 	})
 
 	t.Run("When actions contain at least one empty action", func(t *testing.T) {
 		stmt, err := NewStatement(effect, []string{"edit", "", "show"}, resources)
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 
 		stmt, err = NewStatement(effect, []string{"edit", "", "", ""}, resources)
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 	})
 
 	t.Run("When at least one resource is invalid", func(t *testing.T) {
 		stmt, err := NewStatement(effect, actions, []string{"foo"})
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 
 		stmt, err = NewStatement(effect, actions, []string{"orn:judge-org:policy-service::foo/hello", "foo", "orn:judge-org:policy-service::foo/bar"})
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 
 		stmt, err = NewStatement(effect, actions, []string{"", "orn:judge-org:policy-service::foo/bar"})
-		assert.NotNil(t, err)
-		assert.Equal(t, stmt, &Statement{})
+		assert.Error(err)
+		assert.Nil(stmt)
 	})
 
 	stmt, err := NewStatement(effect, actions, resources)
-	assert.Nil(t, err)
-	assert.Equal(t, stmt.Action, actions)
-	assert.Equal(t, len(stmt.Resource), 1)
-	assert.Equal(t, stmt.Effect, "Allow")
-	assert.Equal(t, stmt.Resource[0].Partition, "judge-org")
-	assert.Equal(t, stmt.Resource[0].Service, "policy-service")
+	assert.NoError(err)
+	assert.Equal(stmt.Actions, actions)
+	assert.Equal(len(stmt.Resources), 1)
+	assert.Equal(stmt.Effect, "ALLOW")
+	assert.Equal(stmt.Resources[0].Partition, "judge-org")
+	assert.Equal(stmt.Resources[0].Service, "policy-service")
 }
