@@ -1,0 +1,110 @@
+package main
+
+import (
+	"fmt"
+	"encoding/json"
+	"strings"
+)
+
+type Expr interface {
+	Eval() Expr
+	String() string
+	GoString() string
+}
+
+type Constant struct {
+	Value string
+}
+
+type Funcall struct {
+	Name string
+	Args []Expr
+}
+
+func (f *Funcall) Eval() Expr {
+	return f
+}
+
+func (f *Funcall) String() string {
+  var args string
+
+  for i := range f.Args {
+    args = args + f.Args[i].String()
+  }
+  return fmt.Sprintf("%s: %s ", f.Name, args)
+}
+
+
+func (f *Funcall) GoString() string {
+  var args []string
+
+  for i := range f.Args {
+    args = append(args, f.Args[i].GoString())
+  }
+  return fmt.Sprintf("&Funcall{Name: %q, Args: []&Expr{%s}}", f.Name, strings.Join(args, ","))
+}
+
+func (c *Constant) Eval() Expr {
+	return &Constant{Value: c.Value}
+}
+
+func (c *Constant) String() string {
+  return c.Value + " "
+}
+
+func (c *Constant) GoString() string {
+  return fmt.Sprintf("&Constant{Value: %q}", c.Value)
+}
+
+func Compile(s []byte) (Expr, error) {
+	var raw interface{}
+
+	err := json.Unmarshal(s, &raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeExpr(raw)
+}
+
+func decodeExpr(value interface{}) (Expr, error) {
+	switch v := value.(type) {
+	case []interface{}:
+		if len(v) == 0 {
+			return nil, fmt.Errorf("XXX")
+		}
+		funcName := v[0].(string)
+
+		args := make([]Expr, len(v)-1)
+
+		for i, x := range v[1:] {
+			arg, err := decodeExpr(x)
+			if err != nil {
+				return nil, fmt.Errorf("XXX")
+			}
+			args[i] = arg
+		}
+
+		return &Funcall{Name: funcName, Args: args}, nil
+	case string:
+		return &Constant{Value: v}, nil
+	}
+	return nil, fmt.Errorf("XXX")
+}
+
+var foo = `
+	["cond#and1",
+		["string#like2", "foo", "foo"],
+		["cond#or3",
+			["string#like4", "judge:username", "gearnode"],
+			["string#like5", "judge:email", "bryan@frimin.fr"]
+		]
+	]
+
+`
+
+func main() {
+	c, _ := Compile([]byte(foo))
+	fmt.Printf("%#v\n", c)
+}
+

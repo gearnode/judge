@@ -17,6 +17,7 @@ limitations under the License.
 package policy
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gearnode/judge/pkg/orn"
@@ -57,6 +58,12 @@ type Statement struct {
 	// Resources element specifies the object or objects that the statement
 	// covers.
 	Resources []resource.Resource `json:"resource"`
+
+	// Conditions describe custom logic based on the authorization request
+	// context. Should be used for example to make an statement with an
+	// expire date or filter on IP, etc.
+	// TODO: @gearnode add link to the condition list
+	Condition *AST
 }
 
 const (
