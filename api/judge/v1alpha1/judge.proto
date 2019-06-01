@@ -20,44 +20,25 @@ option go_package = "github.com/gearnode/judge/pkg/apiserver/v1alpha1";
 
 import "api/judge/v1alpha1/policy.proto";
 import "google/protobuf/empty.proto";
-import "google/api/annotations.proto";
 
 // The Judge service.
 service Judge {
   // Gets a single policy.
-  rpc GetPolicy(GetPolicyRequest) returns (Policy) {
-    option(google.api.http) = {
-      get: "/v1alpha1/policies/{policy_id}"
-    };
-  }
+  rpc GetPolicy(GetPolicyRequest) returns (Policy);
 
   // Lists policies.
-  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {}
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
 
   // Creates a new policy.
-  rpc CreatePolicy(CreatePolicyRequest) returns (Policy) {
-    option(google.api.http) = {
-      post: "/v1alpha1/policies"
-      body: "*"
-    };
-  }
+  rpc CreatePolicy(CreatePolicyRequest) returns (Policy);
 
   // Updates or inserts a policy.
-  rpc UpdatePolicy(UpdatePolicyRequest) returns (Policy) {
-    option(google.api.http) = {
-      put: "/v1alpha1/policies/{policy_id}"
-      body: "policy"
-    };
-  }
+  rpc UpdatePolicy(UpdatePolicyRequest) returns (Policy);
 
   // Deletes a policy.
-  rpc DeletePolicy(DeletePolicyRequest) returns (google.protobuf.Empty) {
-    option(google.api.http) = {
-      delete: "/v1alpha1/policies/{policy_id}"
-    };
-  }
+  rpc DeletePolicy(DeletePolicyRequest) returns (google.protobuf.Empty);
 
-  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {}
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
 }
 
 message GetPolicyRequest {

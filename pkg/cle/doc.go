@@ -15,4 +15,4 @@
  */
 
 // Package cle implement the Condition Language Expression
-package cle // import "github.com/gearnode/judge/pkg/policy/cle"
+package cle // import "github.com/gearnode/judge/pkg/cle"

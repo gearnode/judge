@@ -18,8 +18,6 @@ package cle
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 )
 
 type Constant struct {
@@ -27,28 +25,18 @@ type Constant struct {
 	Type  string
 }
 
+func (c *Constant) Children() []Expr {
+	return nil
+}
+
 func (c *Constant) Eval() Expr {
-	switch c.Type {
-	case "string":
-		return &Constant{Value: c.Value, Type: c.Type}
-	}
 	return &Constant{Value: c.Value, Type: c.Type}
 }
 
 func (c *Constant) String() string {
-	switch v := c.Value.(type) {
-	case string:
-		return v
-	case int:
-		return strconv.Itoa(v)
-	case bool:
-		return strconv.FormatBool(v)
-	case time.Time:
-		return v.String()
-	}
-	return "unknown type"
+	return fmt.Sprintf("%v", c.Value)
 }
 
 func (c *Constant) GoString() string {
-	return fmt.Sprintf("&Constant{Value: %q}", c.Value)
+	return fmt.Sprintf("&Constant{Value: %q, Type: %q}", c.Value, c.Type)
 }

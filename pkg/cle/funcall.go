@@ -27,6 +27,10 @@ type Funcall struct {
 	Args []Expr
 }
 
+func (f *Funcall) Children() []Expr {
+	return f.Args
+}
+
 func (f *Funcall) Eval() Expr {
 	return f
 }

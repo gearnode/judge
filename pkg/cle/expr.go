@@ -18,6 +18,7 @@ package cle
 
 type Expr interface {
 	Eval() Expr
+	Children() []Expr
 	GoString() string
 	String() string
 }

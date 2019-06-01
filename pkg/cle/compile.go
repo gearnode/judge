@@ -19,7 +19,6 @@ package cle
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -64,8 +63,8 @@ var functionArity = map[string]int{
 }
 
 var functionType = map[string]string{
-	"and":                           "funcall",
-	"or":                            "funcall",
+	"and":                           "bool",
+	"or":                            "bool",
 	"string:equals":                 "string",
 	"string:not_equals":             "string",
 	"string:equals_ignore_case":     "string",
@@ -77,22 +76,16 @@ var functionType = map[string]string{
 func decodeExpr(value interface{}) (Expr, error) {
 	switch v := value.(type) {
 	case string:
-		i, err := strconv.Atoi(v)
-		if err == nil {
-			return &Constant{Value: i, Type: "integer"}, nil
-		}
-
-		b, err := strconv.ParseBool(v)
-		if err == nil {
-			return &Constant{Value: b, Type: "boolean"}, nil
-		}
-
 		t, err := time.Parse(time.RFC3339, v)
 		if err == nil {
 			return &Constant{Value: t, Type: "datetime"}, nil
 		}
-
 		return &Constant{Value: v, Type: "string"}, nil
+	case int64:
+		// TOOD: float 64
+		return &Constant{Value: v, Type: "integer"}, nil
+	case bool:
+		return &Constant{Value: v, Type: "boolean"}, nil
 	case []interface{}:
 		if len(v) == 0 {
 			return nil, fmt.Errorf("Funcall should have argument(s)")
@@ -107,6 +100,7 @@ func decodeExpr(value interface{}) (Expr, error) {
 			return nil, fmt.Errorf("The function does not exist")
 		}
 
+		// TODO change cond order
 		if functionArity[funcName] != len(v[1:]) && functionArity[funcName] != -1 {
 			return nil, fmt.Errorf("The function does have the right number of argument(s)")
 		}
