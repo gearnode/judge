@@ -18,11 +18,14 @@ package cle
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestFoo(t *testing.T) {
-	tree, err := Compile([]byte(`
+	assert := assert.New(t)
+
+	tree, err := Parse([]byte(`
 	["and",
 		["string:equals", "judge:current_identiy", "gearnode"],
 		["and",
@@ -32,6 +35,6 @@ func TestFoo(t *testing.T) {
 	]
 	`))
 
+	assert.NoError(err)
 	fmt.Printf("Tree: %#v\n", tree)
-	fmt.Printf("Error: %v\n", err)
 }

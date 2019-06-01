@@ -36,7 +36,7 @@ func (f *Funcall) Eval() Expr {
 }
 
 func (f *Funcall) String() string {
-	return "funcall(" + f.Name + "/" + strconv.Itoa(functionArity[f.Name]) + ")"
+	return "funcall(" + f.Name + "/" + strconv.Itoa(2) + ")"
 }
 
 func (f *Funcall) GoString() string {
