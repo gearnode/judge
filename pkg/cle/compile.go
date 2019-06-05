@@ -15,26 +15,3 @@
  */
 
 package cle
-
-import (
-	"fmt"
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
-
-func TestFoo(t *testing.T) {
-	assert := assert.New(t)
-
-	tree, err := Parse([]byte(`
-	["and",
-		["string:equals", "judge:current_identiy", "gearnode"],
-		["and",
-			["datetime:greater_than", "judge:current_time", "2013-06-30T00:00:00Z"],
-			["datetime:less_then", "judge:current_time", "2020-06-30T00:00:00Z"]
-		]
-	]
-	`))
-
-	assert.NoError(err)
-	fmt.Printf("Tree: %#v\n", tree)
-}

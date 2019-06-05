@@ -27,8 +27,17 @@ type Funcall struct {
 	Args []Expr
 }
 
-func (f *Funcall) Children() []Expr {
-	return f.Args
+func (f *Funcall) Walk(fn func(Expr) error) error {
+	if err := fn(f); err != nil {
+		return err
+	}
+
+	for _, arg := range f.Args {
+		if err := arg.Walk(fn); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (f *Funcall) Eval() Expr {

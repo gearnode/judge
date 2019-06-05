@@ -28,7 +28,7 @@ import (
  * - Error message
  */
 
-func Parse(s []byte) (Expr, error) {
+func ParseTree(s []byte) (*Tree, error) {
 	var raw interface{}
 
 	err := json.Unmarshal(s, &raw)
@@ -36,7 +36,10 @@ func Parse(s []byte) (Expr, error) {
 		return nil, err
 	}
 
-	return parseExpr(raw)
+	var tree Tree
+	tree.Root, err = parseExpr(raw)
+
+	return &tree, err
 }
 
 func parseExpr(value interface{}) (Expr, error) {
@@ -50,7 +53,7 @@ func parseExpr(value interface{}) (Expr, error) {
 	return nil, fmt.Errorf("syntax error")
 }
 
-func parseFuncall(v []interface{}) (*Funcall, error) {
+func parseFuncall(v []interface{}) (Expr, error) {
 	if len(v) == 0 {
 		return nil, fmt.Errorf("Funcall should have argument(s)")
 	}

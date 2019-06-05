@@ -25,8 +25,8 @@ type Constant struct {
 	Type  string
 }
 
-func (c *Constant) Children() []Expr {
-	return nil
+func (c *Constant) Walk(fn func(Expr) error) error {
+	return fn(c)
 }
 
 func (c *Constant) Eval() Expr {

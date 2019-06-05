@@ -16,17 +16,30 @@
 
 package cle
 
-type Tree struct {
-	Root Expr
-}
+import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-func (t *Tree) Walk(fn func(Expr) error) error {
-	return t.Root.Walk(fn)
-}
+func TestFoo(t *testing.T) {
+	assert := assert.New(t)
 
-type Expr interface {
-	Eval() Expr
-	Walk(func(Expr) error) error
-	GoString() string
-	String() string
+	tree, err := ParseTree([]byte(`
+	["and",
+		["string:equals", "judge:current_identiy", "gearnode"],
+		["and",
+			["datetime:greater_than", "judge:current_time", "2013-06-30T00:00:00Z"],
+			["datetime:less_then", "judge:current_time", "2020-06-30T00:00:00Z"]
+		]
+	]
+	`))
+
+	assert.NoError(err)
+	// fmt.Printf("Tree: %#v\n", tree)
+
+	tree.Walk(func(expr Expr) error {
+		fmt.Printf("%v\n", expr)
+		return nil
+	})
 }
